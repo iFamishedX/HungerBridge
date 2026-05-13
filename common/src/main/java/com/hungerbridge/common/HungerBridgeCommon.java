@@ -30,5 +30,6 @@ public class HungerBridgeCommon {
     public static void onServerStop() {
         if (httpServer != null) {
             httpServer.stop();
+        }
     }
 }
