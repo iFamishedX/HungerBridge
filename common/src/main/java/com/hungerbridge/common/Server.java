@@ -1,7 +1,7 @@
 package com.hungerbridge.common;
 
 import com.sun.net.httpserver.HttpServer;
-
+import com.hungerbridge.common.BridgeHandler;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -16,17 +16,12 @@ public class Server {
 
     public void start() throws IOException {
         server = HttpServer.create(new InetSocketAddress("0.0.0.0", config.port), 0);
-        HttpHandler handler = new HttpHandler(config);
-        server.createContext("/run", handler);
-        server.createContext("/log", handler);
-        server.createContext("/ping", handler);
+
+        BridgeHandler handler = new BridgeHandler(config);
+
+        server.createContext("/", handler); // catch-all router
+
         server.setExecutor(null);
         server.start();
-    }
-
-    public void stop() {
-        if (server != null) {
-            server.stop(0);
-        }
     }
 }
