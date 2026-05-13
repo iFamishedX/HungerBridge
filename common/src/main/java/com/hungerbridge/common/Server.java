@@ -1,7 +1,6 @@
 package com.hungerbridge.common;
 
 import com.sun.net.httpserver.HttpServer;
-import com.hungerbridge.common.BridgeHandler;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -23,5 +22,11 @@ public class Server {
 
         server.setExecutor(null);
         server.start();
+    }
+
+    public void stop() {
+        if (server != null) {
+            server.stop(0);
+        }
     }
 }
