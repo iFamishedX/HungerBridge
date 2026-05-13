@@ -18,12 +18,12 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
         MinecraftServer mc = (MinecraftServer) server;
 
         if (mc instanceof DedicatedServer dedicated) {
-            return dedicated.getServerDirectory().toPath()
+            return dedicated.getServerDirectory()
                     .resolve("config")
                     .resolve("HungerBridge");
         }
 
-        // Fallback, shouldn't really happen on dedicated
+        // Fallback for non-dedicated (rare)
         return Path.of("config", "HungerBridge");
     }
 
@@ -36,7 +36,7 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
                     mc.createCommandSourceStack().withSuppressedOutput(),
                     cmd
             );
-            return ""; // no output capture for now
+            return ""; // no output capture (MUST ADD LATER)
         };
     }
 }
