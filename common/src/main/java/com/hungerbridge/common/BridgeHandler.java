@@ -6,13 +6,12 @@ import com.hungerbridge.common.endpoints.Ping;
 import com.hungerbridge.common.endpoints.Run;
 import com.hungerbridge.common.util.Json;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-public class HttpHandler implements HttpHandler {
+public abstract class BridgeHandler implements com.sun.net.httpserver.HttpHandler {
 
     private final Config config;
     private final Auth auth;

@@ -15,7 +15,7 @@ public class Server {
     }
 
     public void start() throws IOException {
-        server = HttpServer.create(new InetSocketAddress(0, config.port), 0);
+        server = HttpServer.create(new InetSocketAddress("0.0.0.0", config.port), 0);
         HttpHandler handler = new HttpHandler(config);
         server.createContext("/run", handler);
         server.createContext("/log", handler);
