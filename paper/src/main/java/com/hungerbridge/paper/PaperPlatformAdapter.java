@@ -16,11 +16,16 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
     @Override
     public Path getConfigDir(Object server) {
         Server bukkit = (Server) server;
-        return bukkit.getWorldContainer().toPath().resolve("plugins").resolve("HungerBridge");
+        return bukkit.getWorldContainer().toPath()
+                .resolve("plugins")
+                .resolve("HungerBridge");
     }
 
     @Override
     public Platform.CommandExecutor getCommandExecutor(Object server) {
-        return (cmd, silent) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+        return (cmd, silent) -> {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            return ""; // ⭐ MUST return String
+        };
     }
 }
