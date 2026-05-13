@@ -8,14 +8,14 @@ public class HungerBridgeCommon {
 
     public static void onServerStart(Object platformServer) {
         try {
-            Platform.ServerAdapter adapter = Platform.getServerAdapter();
-            var mc = adapter.unwrap(platformServer);
+            var adapter = Platform.getAdapter();
+            var server = adapter.unwrap(platformServer);
 
-            var cfgDir = adapter.getConfigDir(mc);
+            var cfgDir = adapter.getConfigDir(server);
             var config = Config.load(cfgDir);
 
             Platform.init(
-                    adapter.getCommandExecutor(mc),
+                    adapter.getCommandExecutor(server),
                     Platform::log
             );
 
@@ -29,7 +29,7 @@ public class HungerBridgeCommon {
 
     public static void onServerStop() {
         if (httpServer != null) {
-            httpServer.stop();
+            httpServer.shutdown(); 
         }
     }
 }

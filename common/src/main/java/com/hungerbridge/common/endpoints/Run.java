@@ -18,7 +18,7 @@ public class Run {
         }
 
         try {
-            String output = Platform.commandRunner().run(command, silent);
+            String output = Platform.executor().run(command, silent);
             res.addProperty("ok", true);
             res.addProperty("output", output == null ? "" : output);
         } catch (Exception e) {

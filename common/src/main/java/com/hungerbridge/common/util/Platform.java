@@ -5,7 +5,11 @@ import java.nio.file.Path;
 public class Platform {
 
     public interface CommandExecutor {
-        void run(String cmd, boolean silent);
+        String run(String cmd, boolean silent);
+    }
+
+    public interface Logger {
+        void log(String level, String msg);
     }
 
     public interface ServerAdapter {
@@ -22,7 +26,7 @@ public class Platform {
         adapter = a;
     }
 
-    public static ServerAdapter getServerAdapter() {
+    public static ServerAdapter getAdapter() {
         return adapter;
     }
 
@@ -31,11 +35,15 @@ public class Platform {
         logger = log;
     }
 
-    public static void log(String level, String msg) {
-        logger.log(level, msg);
+    public static CommandExecutor executor() {
+        return executor;
     }
 
-    public interface Logger {
-        void log(String level, String msg);
+    public static Logger logger() {
+        return logger;
+    }
+
+    public static void log(String level, String msg) {
+        logger.log(level, msg);
     }
 }
