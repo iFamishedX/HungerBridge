@@ -20,12 +20,11 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Install Gradle (via setup-gradle)
+      - name: Install Gradle
         uses: gradle/actions/setup-gradle@v3
 
       - name: Generate Gradle Wrapper
-        run: |
-          gradle wrapper
+        run: gradle wrapper
 
       - name: Commit wrapper files
         uses: stefanzweifel/git-auto-commit-action@v5

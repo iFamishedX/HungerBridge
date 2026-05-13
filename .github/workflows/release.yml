@@ -17,17 +17,11 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, 'Merge pull request') }}
 
     steps:
-      # -----------------------------
-      # CHECKOUT
-      # -----------------------------
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # -----------------------------
-      # VERSION.YAML PARSING
-      # -----------------------------
       - name: Install yq
         run: |
           curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
@@ -35,7 +29,6 @@ jobs:
           chmod +x /usr/local/bin/yq
 
       - name: Parse version.yaml
-        id: version
         run: |
           echo "RUN=$(yq '.run' version.yaml)" >> $GITHUB_ENV
           echo "VERSION=$(yq '.version' version.yaml)" >> $GITHUB_ENV
@@ -48,9 +41,6 @@ jobs:
         if: ${{ env.RUN == 'false' }}
         run: echo "run=false → skipping release."
 
-      # -----------------------------
-      # JAVA + GRADLE BUILD
-      # -----------------------------
       - name: Set up JDK 21
         if: ${{ env.RUN == 'true' }}
         uses: actions/setup-java@v4
@@ -75,22 +65,14 @@ jobs:
           chmod +x ./gradlew
           ./gradlew clean build --no-daemon
 
-      # -----------------------------
-      # PACKAGE FINAL ARTIFACT
-      # -----------------------------
       - name: Prepare final artifact
         if: ${{ env.RUN == 'true' }}
         run: |
           mkdir -p release
-
           FINAL_JAR="HungerBridge-${VERSION}+${MC_VERSION}.jar"
           cp paper/build/libs/*.jar "release/${FINAL_JAR}"
-
           echo "FINAL_JAR=${FINAL_JAR}" >> $GITHUB_ENV
 
-      # -----------------------------
-      # CREATE RELEASE (NO CHECKOUT)
-      # -----------------------------
       - name: Create GitHub Release
         if: ${{ env.RUN == 'true' }}
         uses: softprops/action-gh-release@v2
