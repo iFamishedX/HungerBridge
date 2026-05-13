@@ -14,6 +14,9 @@ public class HungerBridgePaper extends JavaPlugin {
 
     @Override
     public void onEnable() {
+
+        Platform.setAdapter(new PaperPlatformAdapter());
+
         try {
             Path cfgDir = getDataFolder().toPath().resolve("config");
             Config config = Config.load(cfgDir);

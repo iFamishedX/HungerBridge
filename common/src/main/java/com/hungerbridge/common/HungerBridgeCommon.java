@@ -1,28 +1,21 @@
 package com.hungerbridge.common;
 
-import net.minecraft.server.MinecraftServer;
+import com.hungerbridge.common.util.Platform;
 
 public class HungerBridgeCommon {
 
     private static Server httpServer;
 
-    public static void onServerStart(MinecraftServer mcServer) {
+    public static void onServerStart(Object platformServer) {
         try {
-            var cfgDir = mcServer.getRunDirectory().toPath().resolve("config").resolve("HungerBridge");
+            Platform.ServerAdapter adapter = Platform.getServerAdapter();
+            var mc = adapter.unwrap(platformServer);
+
+            var cfgDir = adapter.getConfigDir(mc);
             var config = Config.load(cfgDir);
 
-            var exec = new Platform.CommandExecutor() {
-                @Override
-                public void run(String cmd, boolean silent) {
-                    mcServer.getCommands().performPrefixedCommand(
-                            mcServer.createCommandSourceStack().withSuppressedOutput(),
-                            cmd
-                    );
-                }
-            };
-
             Platform.init(
-                    exec,
+                    adapter.getCommandExecutor(mc),
                     Platform::log
             );
 
