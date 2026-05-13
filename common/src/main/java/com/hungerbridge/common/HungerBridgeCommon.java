@@ -29,7 +29,6 @@ public class HungerBridgeCommon {
 
     public static void onServerStop() {
         if (httpServer != null) {
-            httpServer.shutdown(); 
-        }
+            httpServer.stop();
     }
 }
