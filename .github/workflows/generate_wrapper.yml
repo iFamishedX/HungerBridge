@@ -1,0 +1,19 @@
+name: Generate Wrapper
+on: workflow_dispatch
+
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Generate wrapper
+        run: gradle wrapper
+
+      - name: Commit wrapper
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Add Gradle wrapper"
