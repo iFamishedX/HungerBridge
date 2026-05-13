@@ -17,7 +17,7 @@ public class Server {
     public void start() throws IOException {
         server = HttpServer.create(new InetSocketAddress("0.0.0.0", config.port), 0);
 
-        BridgeHandler handler = new BridgeHandler(config);
+        RootHandler handler = new RootHandler(config);
 
         server.createContext("/", handler); // catch-all router
 
