@@ -1,0 +1,86 @@
+name: Versioned Release
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, 'Merge pull request') }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+            -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+      - name: Parse version.yaml
+        id: version
+        run: |
+          echo "RUN=$(yq '.run' version.yaml)" >> $GITHUB_ENV
+          echo "VERSION=$(yq '.version' version.yaml)" >> $GITHUB_ENV
+          echo "MC_VERSION=$(yq '.mc_version' version.yaml)" >> $GITHUB_ENV
+          echo "DESC<<EOF" >> $GITHUB_ENV
+          yq '.description' version.yaml >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Stop if run=false
+        if: ${{ env.RUN == 'false' }}
+        run: echo "run=false → skipping release."
+
+      - name: Set up JDK 21
+        if: ${{ env.RUN == 'true' }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Cache Gradle
+        if: ${{ env.RUN == 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build HungerBridge
+        if: ${{ env.RUN == 'true' }}
+        run: |
+          ./gradlew clean build --no-daemon
+
+      - name: Prepare final artifact
+        if: ${{ env.RUN == 'true' }}
+        run: |
+          mkdir -p release
+          cp paper/build/libs/*.jar release/paper.jar
+          cp fabric/build/libs/*.jar release/fabric.jar
+
+          # Choose ONE final jar (Paper is preferred)
+          FINAL_JAR="HungerBridge-${VERSION}+${MC_VERSION}.jar"
+          cp paper/build/libs/*.jar "release/${FINAL_JAR}"
+
+          echo "FINAL_JAR=${FINAL_JAR}" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        if: ${{ env.RUN == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: ${{ env.VERSION }}
+          body: ${{ env.DESC }}
+          files: |
+            release/${{ env.FINAL_JAR }}
