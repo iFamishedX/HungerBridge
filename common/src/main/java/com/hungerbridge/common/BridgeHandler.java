@@ -16,7 +16,7 @@ public abstract class BridgeHandler implements com.sun.net.httpserver.HttpHandle
     private final Config config;
     private final Auth auth;
 
-    public HttpHandler(Config config) {
+    public BridgeHandler(Config config) {
         this.config = config;
         this.auth = new Auth(config);
     }
