@@ -17,17 +17,11 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, 'Merge pull request') }}
 
     steps:
-      # ---------------------------------------------------------
-      # CHECKOUT
-      # ---------------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # ---------------------------------------------------------
-      # PARSE version.yaml
-      # ---------------------------------------------------------
       - name: Install yq
         run: |
           curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
@@ -47,9 +41,6 @@ jobs:
         if: ${{ env.RUN == 'false' }}
         run: echo "run=false → skipping release."
 
-      # ---------------------------------------------------------
-      # JAVA + GRADLE
-      # ---------------------------------------------------------
       - name: Set up JDK 21
         if: ${{ env.RUN == 'true' }}
         uses: actions/setup-java@v4
@@ -57,34 +48,17 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Cache Gradle
+      - name: Set up Gradle
         if: ${{ env.RUN == 'true' }}
-        uses: actions/cache@v4
+        uses: gradle/actions/setup-gradle@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Verify Gradle Wrapper Exists
-        if: ${{ env.RUN == 'true' }}
-        run: |
-          ls -R .
-          test -f gradlew
-          test -f gradle/wrapper/gradle-wrapper.jar
-          test -f gradle/wrapper/gradle-wrapper.properties
+          cache-read-only: false
 
       - name: Build HungerBridge
         if: ${{ env.RUN == 'true' }}
         run: |
-          chmod +x ./gradlew
-          ./gradlew clean build --no-daemon
+          gradle clean build --no-daemon
 
-      # ---------------------------------------------------------
-      # PACKAGE FINAL ARTIFACT
-      # ---------------------------------------------------------
       - name: Prepare final artifact
         if: ${{ env.RUN == 'true' }}
         run: |
@@ -93,9 +67,6 @@ jobs:
           cp paper/build/libs/*.jar "release/${FINAL_JAR}"
           echo "FINAL_JAR=${FINAL_JAR}" >> $GITHUB_ENV
 
-      # ---------------------------------------------------------
-      # CREATE RELEASE (NO CHECKOUT)
-      # ---------------------------------------------------------
       - name: Create GitHub Release
         if: ${{ env.RUN == 'true' }}
         uses: softprops/action-gh-release@v2
