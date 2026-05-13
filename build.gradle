@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+}
+
+subprojects {
+    apply plugin: 'java'
+    group = 'com.hungerbridge'
+    version = '1.0.0'
+
+    repositories {
+        mavenCentral()
+        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+        maven { url = 'https://maven.fabricmc.net/' }
+    }
+}
+
+project(':common') {
+    dependencies {
+        implementation 'com.google.code.gson:gson:2.10.1'
+        implementation 'org.yaml:snakeyaml:2.2'
+    }
+}
+
+project(':paper') {
+    dependencies {
+        implementation project(':common')
+        compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+    }
+}
+
+project(':fabric') {
+    dependencies {
+        implementation project(':common')
+        // add your fabric loader + api deps here as needed
+    }
+}

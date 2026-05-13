@@ -1,0 +1,5 @@
+name: HungerBridge
+main: com.hungerbridge.paper.HungerBridgePaper
+version: 1.0
+api-version: 1.21
+load: POSTWORLD
