@@ -2,15 +2,24 @@
   "schemaVersion": 1,
   "id": "hungerbridge",
   "version": "1.0.0",
+
   "name": "HungerBridge",
-  "description": "HTTP bridge for HungerLib",
+  "description": "HTTP bridge for Minecraft servers",
+  "authors": ["iFamishedX"],
+
+  "environment": "*",
+
   "entrypoints": {
     "main": [
       "com.hungerbridge.fabric.HungerBridgeFabric"
     ]
   },
+
+  "mixins": [
+    "hungerbridge.mixins.json"
+  ],
+
   "depends": {
-    "fabricloader": ">=0.15.0",
-    "minecraft": "1.21.x"
+    "fabricloader": ">=0.14.0"
   }
 }
