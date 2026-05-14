@@ -14,7 +14,7 @@ public class Run {
         String cmd = extract(body, "command");
         boolean silent = Boolean.parseBoolean(extract(body, "silent"));
 
-        String result = Platform.executor().run(cmd, silent);
+        String result = Platform.executor().run(cmd);
 
         return """
         {
