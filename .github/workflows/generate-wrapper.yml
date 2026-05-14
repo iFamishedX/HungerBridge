@@ -7,33 +7,47 @@ permissions:
   contents: write
 
 jobs:
-  gen:
+  gen-wrapper:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Install JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Create empty settings-wrapper.gradle
-        run: echo "" > settings-wrapper.gradle
+      - name: Download standalone Gradle 8.10.2
+        run: |
+          wget https://services.gradle.org/distributions/gradle-8.10.2-bin.zip
+          unzip gradle-8.10.2-bin.zip
+          mv gradle-8.10.2 gradle-standalone
 
-      - name: Generate Gradle Wrapper (8.10.2)
-        run: gradle wrapper --gradle-version 8.10.2 --init-script init-no-project.gradle
+      - name: Create empty temp project
+        run: |
+          mkdir temp-wrapper
+          cd temp-wrapper
+          echo "rootProject.name = 'temp'" > settings.gradle
 
+      - name: Generate wrapper using standalone Gradle
+        run: |
+          cd temp-wrapper
+          ../gradle-standalone/bin/gradle wrapper --gradle-version 8.10.2 --distribution-type bin
 
-      - name: Make wrapper executable
-        run: chmod +x gradlew
+      - name: Copy wrapper into repo
+        run: |
+          cp temp-wrapper/gradlew .
+          cp temp-wrapper/gradlew.bat .
+          mkdir -p gradle/wrapper
+          cp temp-wrapper/gradle/wrapper/* gradle/wrapper/
 
-      - name: Commit wrapper files
+      - name: Commit wrapper
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Add Gradle wrapper (8.10.2)"
+          commit_message: "Add Gradle wrapper (generated on CI)"
           add_options: "-A"
           file_pattern: |
             gradlew
