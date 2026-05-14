@@ -13,7 +13,7 @@ import java.nio.file.Path;
 /**
  * Fabric entrypoint.
  *
- * NOTE: This class only registers the adapter.
+ * NOTE: This only registers the adapter.
  * You must call HungerBridgeFabric.startForServer(server) from a mixin or
  * Fabric event that has access to MinecraftServer.
  */
