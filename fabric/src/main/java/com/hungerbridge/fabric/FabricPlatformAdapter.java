@@ -2,13 +2,10 @@ package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.util.Platform;
 import com.mojang.brigadier.ParseResults;
-import net.minecraft.commands.CommandResultCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FabricPlatformAdapter implements Platform.ServerAdapter {
 
@@ -24,28 +21,14 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
             MinecraftServer s = (MinecraftServer) server;
 
             return s.submit(() -> {
-                List<String> output = new ArrayList<>();
-
-                CommandResultCallback callback = new CommandResultCallback() {
-                    @Override
-                    public void onResult(boolean success, int result) {
-                        // no-op; not used for output
-                    }
-                };
-
-                CommandSourceStack source = s.createCommandSourceStack()
-                        .withCallback(callback);
+                CommandSourceStack source = s.createCommandSourceStack();
 
                 ParseResults<CommandSourceStack> parsed =
                         s.getCommands().getDispatcher().parse(cmd, source);
 
-                s.getCommands().performCommand(parsed, cmd);
+                boolean ok = s.getCommands().performCommand(parsed, cmd);
 
-                if (output.isEmpty()) {
-                    return "";
-                }
-
-                return String.join("\n", output);
+                return ok ? "1" : "0";
             }).join();
         };
     }
