@@ -1,8 +1,9 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.util.Platform;
+import com.mojang.brigadier.ParseResults;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.storage.LevelResource;
 
 import java.nio.file.Path;
 
@@ -11,7 +12,7 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
     @Override
     public Path getConfigDir(Object server) {
         MinecraftServer s = (MinecraftServer) server;
-        return s.getWorldPath(LevelResource.CONFIG).resolve("HungerBridge");
+        return s.getServerDirectory().toPath().resolve("config/HungerBridge");
     }
 
     @Override
@@ -19,12 +20,16 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
         return (cmd, silent) -> {
             MinecraftServer s = (MinecraftServer) server;
 
-            // Run command on main thread
             return s.submit(() -> {
-                int result = s.getCommands().performCommand(
-                        s.createCommandSourceStack(),
-                        cmd
-                );
+                CommandSourceStack source = s.createCommandSourceStack();
+
+                // Brigadier parse step
+                ParseResults<CommandSourceStack> parsed =
+                        s.getCommands().getDispatcher().parse(cmd, source);
+
+                // Execute parsed command
+                int result = s.getCommands().performCommand(parsed, cmd);
+
                 return result == 1 ? "1" : "0";
             }).join();
         };
