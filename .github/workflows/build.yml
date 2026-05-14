@@ -1,7 +1,4 @@
 name: Build
-defaults:
-  run:
-    working-directory: HungerBridge
 
 on:
   push:
@@ -25,27 +22,5 @@ jobs:
       - name: Grant execute permission for Gradle
         run: chmod +x ./gradlew
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Build
         run: ./gradlew clean build --no-daemon
-
-      - name: Upload Paper jar
-        uses: actions/upload-artifact@v4
-        with:
-          name: hungerbridge-paper
-          path: paper/build/libs/*.jar
-
-      - name: Upload Fabric jar
-        uses: actions/upload-artifact@v4
-        with:
-          name: hungerbridge-fabric
-          path: fabric/build/libs/*.jar

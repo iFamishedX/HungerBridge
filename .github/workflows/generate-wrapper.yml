@@ -6,10 +6,6 @@ on:
 permissions:
   contents: write
 
-defaults:
-  run:
-    working-directory: HungerBridge
-
 jobs:
   gen-wrapper:
     runs-on: ubuntu-latest
