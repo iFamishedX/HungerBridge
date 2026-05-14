@@ -4,7 +4,7 @@ import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Server;
 import com.hungerbridge.common.util.Platform;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,19 +13,23 @@ import java.nio.file.Path;
 
 public class HungerBridgeFabric implements ModInitializer {
 
-    public static final String MOD_ID = "hungerbridge";
     private static final Logger LOGGER = LoggerFactory.getLogger("HungerBridge");
-
+    private boolean started = false;
     private Server bridgeServer;
 
     @Override
     public void onInitialize() {
         LOGGER.info("HungerBridge Fabric mod initialized");
 
-        // Register adapter BEFORE server start
         Platform.setAdapter(new FabricPlatformAdapter());
 
-        ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
+        // Use tick event instead of lifecycle event
+        ServerTickEvents.START_SERVER_TICK.register(server -> {
+            if (!started) {
+                started = true;
+                onServerStarted(server);
+            }
+        });
     }
 
     private void onServerStarted(MinecraftServer server) {
@@ -37,7 +41,6 @@ public class HungerBridgeFabric implements ModInitializer {
 
             Config config = Config.load(cfgDir);
 
-            // Initialize Platform with adapter-provided executor + logger
             Platform.init(
                     Platform.adapter().getCommandExecutor(server),
                     Platform.adapter().getLogger()
