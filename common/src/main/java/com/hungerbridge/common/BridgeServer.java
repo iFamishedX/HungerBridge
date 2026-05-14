@@ -1,5 +1,7 @@
 package com.hungerbridge.common;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -9,13 +11,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Minimal non-blocking HTTP server that exposes /run and /log endpoints.
- * Platform-specific modules provide logging and command execution.
- */
 public final class BridgeServer {
 
     private final Config config;
@@ -31,13 +30,8 @@ public final class BridgeServer {
         this.commandExecutor = commandExecutor;
     }
 
-    /**
-     * Start the HTTP server on the configured port.
-     */
     public synchronized void start() {
-        if (server != null) {
-            return;
-        }
+        if (server != null) return;
 
         try {
             server = HttpServer.create(new InetSocketAddress(config.getPort()), 0);
@@ -48,16 +42,20 @@ public final class BridgeServer {
         executor = Executors.newCachedThreadPool();
         server.setExecutor(executor);
 
-        server.createContext("/run", new RunHandler());
-        server.createContext("/log", new LogHandler());
+        // Legacy endpoints
+        server.createContext("/run", new LegacyRunHandler());
+        server.createContext("/log", new LegacyLogHandler());
+
+        // JSON v1 endpoints
+        server.createContext("/v1/run", new RunV1Handler());
+        server.createContext("/v1/log", new LogV1Handler());
+        server.createContext("/v1/status", new StatusV1Handler());
+        server.createContext("/v1/version", new VersionV1Handler());
 
         server.start();
         logger.log("INFO", "HungerBridge HTTP server started on port " + config.getPort());
     }
 
-    /**
-     * Stop the HTTP server and release resources.
-     */
     public synchronized void stop() {
         if (server != null) {
             server.stop(0);
@@ -70,83 +68,193 @@ public final class BridgeServer {
         logger.log("INFO", "HungerBridge HTTP server stopped.");
     }
 
+    // -------------------------
+    // Helpers
+    // -------------------------
+
     private boolean isAuthorized(HttpExchange exchange) {
         String header = exchange.getRequestHeaders().getFirst("X-Auth-Key");
         return header != null && header.equals(config.getAuthKey());
     }
 
-    private String readBody(HttpExchange exchange) throws IOException {
+    private JsonObject readJson(HttpExchange exchange) throws IOException {
         try (InputStream in = exchange.getRequestBody()) {
-            byte[] bytes = in.readAllBytes();
-            return new String(bytes, StandardCharsets.UTF_8).trim();
+            String body = new String(in.readAllBytes(), StandardCharsets.UTF_8).trim();
+            if (body.isEmpty()) return null;
+            return JsonParser.parseString(body).getAsJsonObject();
         }
     }
 
-    private void writeResponse(HttpExchange exchange, int status, String body) throws IOException {
-        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+    private void writeJson(HttpExchange exchange, int status, JsonObject body) throws IOException {
+        byte[] bytes = Json.stringify(body).getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
         exchange.sendResponseHeaders(status, bytes.length);
         try (OutputStream out = exchange.getResponseBody()) {
             out.write(bytes);
         }
     }
 
-    private class RunHandler implements HttpHandler {
+    private void writeError(HttpExchange exchange, int status, String error, String message) throws IOException {
+        writeJson(exchange, status, Json.obj(
+                "ok", false,
+                "error", error,
+                "message", message
+        ));
+    }
+
+    // -------------------------
+    // Legacy Handlers
+    // -------------------------
+
+    private class LegacyRunHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                writeResponse(exchange, 405, "method not allowed");
+                writeError(exchange, 405, "method_not_allowed", "Use POST");
                 return;
             }
-
             if (!config.isEnabledRun()) {
-                writeResponse(exchange, 403, "run disabled");
+                writeError(exchange, 403, "forbidden", "run disabled");
                 return;
             }
-
             if (!isAuthorized(exchange)) {
-                writeResponse(exchange, 401, "unauthorized");
+                writeError(exchange, 401, "unauthorized", "Invalid X-Auth-Key");
                 return;
             }
 
-            String command = readBody(exchange);
+            String command = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).trim();
             if (command.isEmpty()) {
-                writeResponse(exchange, 400, "empty command");
+                writeError(exchange, 400, "bad_request", "empty command");
                 return;
             }
 
             logger.log("INFO", "Executing command via /run: " + command);
-            // No output capture: fire-and-forget
             commandExecutor.execute(command);
-            writeResponse(exchange, 200, "ok");
+
+            writeJson(exchange, 200, Json.obj("ok", true));
         }
     }
 
-    private class LogHandler implements HttpHandler {
+    private class LegacyLogHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                writeResponse(exchange, 405, "method not allowed");
+                writeError(exchange, 405, "method_not_allowed", "Use POST");
                 return;
             }
-
             if (!config.isEnabledLog()) {
-                writeResponse(exchange, 403, "log disabled");
+                writeError(exchange, 403, "forbidden", "log disabled");
                 return;
             }
-
             if (!isAuthorized(exchange)) {
-                writeResponse(exchange, 401, "unauthorized");
+                writeError(exchange, 401, "unauthorized", "Invalid X-Auth-Key");
                 return;
             }
 
-            String message = readBody(exchange);
+            String message = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).trim();
             if (message.isEmpty()) {
-                writeResponse(exchange, 400, "empty message");
+                writeError(exchange, 400, "bad_request", "empty message");
                 return;
             }
 
             logger.log("INFO", "[HungerBridge] " + message);
-            writeResponse(exchange, 200, "ok");
+            writeJson(exchange, 200, Json.obj("ok", true));
+        }
+    }
+
+    // -------------------------
+    // JSON v1 Handlers
+    // -------------------------
+
+    private class RunV1Handler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                writeError(exchange, 405, "method_not_allowed", "Use POST");
+                return;
+            }
+            if (!config.isEnabledRun()) {
+                writeError(exchange, 403, "forbidden", "run disabled");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                writeError(exchange, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            JsonObject json = readJson(exchange);
+            if (json == null || !json.has("command")) {
+                writeError(exchange, 400, "bad_request", "Missing field: command");
+                return;
+            }
+
+            String command = json.get("command").getAsString();
+            boolean silent = json.has("silent") && json.get("silent").getAsBoolean();
+
+            logger.log("INFO", "Executing command via /v1/run: " + command);
+
+            // Paper will capture output; Fabric will ignore it
+            List<String> output = commandExecutor.executeWithOutput(command);
+
+            JsonObject response = Json.obj("ok", true);
+            if (!silent && output != null) {
+                response.add("output", Json.GSON.toJsonTree(output));
+            }
+
+            writeJson(exchange, 200, response);
+        }
+    }
+
+    private class LogV1Handler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                writeError(exchange, 405, "method_not_allowed", "Use POST");
+                return;
+            }
+            if (!config.isEnabledLog()) {
+                writeError(exchange, 403, "forbidden", "log disabled");
+                return;
+            }
+            if (!isAuthorized(exchange)) {
+                writeError(exchange, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            JsonObject json = readJson(exchange);
+            if (json == null || !json.has("message")) {
+                writeError(exchange, 400, "bad_request", "Missing field: message");
+                return;
+            }
+
+            String level = json.has("level") ? json.get("level").getAsString() : "info";
+            String message = json.get("message").getAsString();
+
+            logger.log(level.toUpperCase(), message);
+            writeJson(exchange, 200, Json.obj("ok", true));
+        }
+    }
+
+    private class StatusV1Handler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            writeJson(exchange, 200, Json.obj(
+                    "ok", true,
+                    "bridge", config.getVersion(),
+                    "platform", config.getPlatform(),
+                    "minecraft", config.getMinecraftVersion()
+            ));
+        }
+    }
+
+    private class VersionV1Handler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            writeJson(exchange, 200, Json.obj(
+                    "bridge", config.getVersion(),
+                    "platform", config.getPlatform(),
+                    "minecraft", config.getMinecraftVersion()
+            ));
         }
     }
 }
