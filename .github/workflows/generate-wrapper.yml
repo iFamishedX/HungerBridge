@@ -20,9 +20,6 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Install Gradle (system)
-        uses: gradle/actions/setup-gradle@v3
-
       - name: Create empty settings-wrapper.gradle
         run: echo "" > settings-wrapper.gradle
 
