@@ -25,6 +25,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
     @Override
     public List<String> executeWithOutput(String command) {
         execute(command);
-        return null; // Fabric cannot capture output
+        return null; // no capture on Fabric
     }
 }

@@ -53,7 +53,6 @@ public final class PaperCommandExecutor implements CommandExecutor {
             return lines;
         }
 
-        // Minimal required overrides
         @Override public String getName() { return "HungerBridge"; }
         @Override public boolean isPermissionSet(String s) { return true; }
         @Override public boolean hasPermission(String s) { return true; }

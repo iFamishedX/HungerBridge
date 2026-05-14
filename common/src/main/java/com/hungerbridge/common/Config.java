@@ -15,7 +15,6 @@ import java.util.UUID;
 
 /**
  * Configuration holder for HungerBridge.
- * Responsible for auto-generating and loading config.yaml.
  */
 public final class Config {
 
@@ -24,7 +23,7 @@ public final class Config {
     private final boolean enabledRun;
     private final boolean enabledLog;
 
-    // Added for JSON API
+    // JSON API metadata
     private String platform = "unknown";
     private String minecraftVersion = "unknown";
     private final String bridgeVersion = "1.11";
@@ -36,46 +35,18 @@ public final class Config {
         this.enabledLog = enabledLog;
     }
 
-    public int getPort() {
-        return port;
-    }
+    public int getPort() { return port; }
+    public String getAuthKey() { return authKey; }
+    public boolean isEnabledRun() { return enabledRun; }
+    public boolean isEnabledLog() { return enabledLog; }
 
-    public String getAuthKey() {
-        return authKey;
-    }
+    public String getVersion() { return bridgeVersion; }
+    public String getPlatform() { return platform; }
+    public String getMinecraftVersion() { return minecraftVersion; }
 
-    public boolean isEnabledRun() {
-        return enabledRun;
-    }
+    public void setPlatform(String platform) { this.platform = platform; }
+    public void setMinecraftVersion(String minecraftVersion) { this.minecraftVersion = minecraftVersion; }
 
-    public boolean isEnabledLog() {
-        return enabledLog;
-    }
-
-    // JSON API fields
-    public String getVersion() {
-        return bridgeVersion;
-    }
-
-    public String getPlatform() {
-        return platform;
-    }
-
-    public String getMinecraftVersion() {
-        return minecraftVersion;
-    }
-
-    public void setPlatform(String platform) {
-        this.platform = platform;
-    }
-
-    public void setMinecraftVersion(String minecraftVersion) {
-        this.minecraftVersion = minecraftVersion;
-    }
-
-    /**
-     * Load configuration from the given directory, generating a default config.yaml if missing.
-     */
     @SuppressWarnings("unchecked")
     public static Config load(Path configDir, Logger logger) {
         try {

@@ -9,10 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Path;
 
-/**
- * Paper implementation of HungerBridge.
- * Starts the HTTP bridge on plugin enable and stops it on disable.
- */
 public final class HungerBridgePlugin extends JavaPlugin {
 
     private BridgeServer bridgeServer;
@@ -21,26 +17,18 @@ public final class HungerBridgePlugin extends JavaPlugin {
     public void onEnable() {
         Logger logger = (level, message) -> {
             switch (level.toUpperCase()) {
-                case "WARN":
-                    getLogger().warning(message);
-                    break;
-                case "ERROR":
-                    getLogger().severe(message);
-                    break;
-                default:
-                    getLogger().info(message);
-                    break;
+                case "WARN": getLogger().warning(message); break;
+                case "ERROR": getLogger().severe(message); break;
+                default: getLogger().info(message); break;
             }
         };
 
         Path configDir = getDataFolder().toPath();
         Config config = Config.load(configDir, logger);
 
-        // Set platform + MC version for JSON /v1/status and /v1/version
         config.setPlatform("paper");
         config.setMinecraftVersion(Bukkit.getVersion());
 
-        // Use Paper executor with output capture
         CommandExecutor executor = new PaperCommandExecutor(this);
 
         bridgeServer = new BridgeServer(config, logger, executor);

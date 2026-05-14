@@ -4,7 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 public final class Json {
+
     public static final Gson GSON = new Gson();
+
+    private Json() {
+    }
 
     public static JsonObject obj(Object... kv) {
         JsonObject o = new JsonObject();

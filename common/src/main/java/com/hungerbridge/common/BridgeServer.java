@@ -68,9 +68,7 @@ public final class BridgeServer {
         logger.log("INFO", "HungerBridge HTTP server stopped.");
     }
 
-    // -------------------------
-    // Helpers
-    // -------------------------
+    // helpers
 
     private boolean auth(HttpExchange ex) {
         String key = ex.getRequestHeaders().getFirst("X-Auth-Key");
@@ -102,25 +100,29 @@ public final class BridgeServer {
         ));
     }
 
-    // -------------------------
-    // Legacy Handlers
-    // -------------------------
+    // legacy handlers
 
     private class LegacyRun implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
-            if (!"POST".equalsIgnoreCase(ex.getRequestMethod()))
-                return error(ex, 405, "method_not_allowed", "Use POST");
-
-            if (!config.isEnabledRun())
-                return error(ex, 403, "forbidden", "run disabled");
-
-            if (!auth(ex))
-                return error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
+                return;
+            }
+            if (!config.isEnabledRun()) {
+                error(ex, 403, "forbidden", "run disabled");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
 
             String cmd = new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).trim();
-            if (cmd.isEmpty())
-                return error(ex, 400, "bad_request", "empty command");
+            if (cmd.isEmpty()) {
+                error(ex, 400, "bad_request", "empty command");
+                return;
+            }
 
             logger.log("INFO", "Executing command via /run: " + cmd);
             executor.execute(cmd);
@@ -132,43 +134,53 @@ public final class BridgeServer {
     private class LegacyLog implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
-            if (!"POST".equalsIgnoreCase(ex.getRequestMethod()))
-                return error(ex, 405, "method_not_allowed", "Use POST");
-
-            if (!config.isEnabledLog())
-                return error(ex, 403, "forbidden", "log disabled");
-
-            if (!auth(ex))
-                return error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
+                return;
+            }
+            if (!config.isEnabledLog()) {
+                error(ex, 403, "forbidden", "log disabled");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
 
             String msg = new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).trim();
-            if (msg.isEmpty())
-                return error(ex, 400, "bad_request", "empty message");
+            if (msg.isEmpty()) {
+                error(ex, 400, "bad_request", "empty message");
+                return;
+            }
 
             logger.log("INFO", "[HungerBridge] " + msg);
             writeJson(ex, 200, Json.obj("ok", true));
         }
     }
 
-    // -------------------------
-    // JSON v1 Handlers
-    // -------------------------
+    // v1 handlers
 
     private class RunV1 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
-            if (!"POST".equalsIgnoreCase(ex.getRequestMethod()))
-                return error(ex, 405, "method_not_allowed", "Use POST");
-
-            if (!config.isEnabledRun())
-                return error(ex, 403, "forbidden", "run disabled");
-
-            if (!auth(ex))
-                return error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
+                return;
+            }
+            if (!config.isEnabledRun()) {
+                error(ex, 403, "forbidden", "run disabled");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
 
             JsonObject json = readJson(ex);
-            if (json == null || !json.has("command"))
-                return error(ex, 400, "bad_request", "Missing field: command");
+            if (json == null || !json.has("command")) {
+                error(ex, 400, "bad_request", "Missing field: command");
+                return;
+            }
 
             String cmd = json.get("command").getAsString();
             boolean silent = json.has("silent") && json.get("silent").getAsBoolean();
@@ -178,8 +190,9 @@ public final class BridgeServer {
             List<String> out = executor.executeWithOutput(cmd);
 
             JsonObject resp = Json.obj("ok", true);
-            if (!silent && out != null)
+            if (!silent && out != null) {
                 resp.add("output", Json.GSON.toJsonTree(out));
+            }
 
             writeJson(ex, 200, resp);
         }
@@ -188,18 +201,24 @@ public final class BridgeServer {
     private class LogV1 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
-            if (!"POST".equalsIgnoreCase(ex.getRequestMethod()))
-                return error(ex, 405, "method_not_allowed", "Use POST");
-
-            if (!config.isEnabledLog())
-                return error(ex, 403, "forbidden", "log disabled");
-
-            if (!auth(ex))
-                return error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
+                return;
+            }
+            if (!config.isEnabledLog()) {
+                error(ex, 403, "forbidden", "log disabled");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
 
             JsonObject json = readJson(ex);
-            if (json == null || !json.has("message"))
-                return error(ex, 400, "bad_request", "Missing field: message");
+            if (json == null || !json.has("message")) {
+                error(ex, 400, "bad_request", "Missing field: message");
+                return;
+            }
 
             String level = json.has("level") ? json.get("level").getAsString() : "info";
             String msg = json.get("message").getAsString();

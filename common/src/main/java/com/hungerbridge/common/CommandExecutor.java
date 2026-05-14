@@ -1,16 +1,24 @@
 package com.hungerbridge.common;
 
+import java.util.List;
+
 /**
- * Functional interface for executing server commands from the HTTP bridge.
+ * Interface for executing server commands from the HTTP bridge.
  * Implemented by platform-specific modules.
  */
-@FunctionalInterface
 public interface CommandExecutor {
 
     /**
      * Execute a command string on the underlying server.
-     *
-     * @param command command to execute (without leading slash)
      */
     void execute(String command);
+
+    /**
+     * Execute a command and return output lines.
+     * Fabric cannot capture output, so it returns null.
+     */
+    default List<String> executeWithOutput(String command) {
+        execute(command);
+        return null;
+    }
 }
