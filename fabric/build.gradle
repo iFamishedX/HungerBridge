@@ -1,6 +1,13 @@
 plugins {
-    id 'java'
-    id 'fabric-loom' version '1.6.12'
+    id "fabric-loom" version "1.7-SNAPSHOT"
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:1.21.1"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:0.18.4"
+
+    implementation project(":common")
 }
 
 java {
@@ -9,13 +16,11 @@ java {
     }
 }
 
-dependencies {
-    minecraft "com.mojang:minecraft:1.21.1"
-    mappings loom.officialMojangMappings()
-
-    modImplementation "net.fabricmc:fabric-loader:0.18.4"
-    implementation project(':common')
+loom {
+    runs {
+        server {
+            server()
+            name "HungerBridge Server"
+        }
+    }
 }
-
-sourceCompatibility = '17'
-targetCompatibility = '17'

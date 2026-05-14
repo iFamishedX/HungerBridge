@@ -1,42 +1,48 @@
 package com.hungerbridge.paper;
 
 import com.hungerbridge.common.BridgeServer;
+import com.hungerbridge.common.CommandExecutor;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Path;
 
-public class HungerBridgePlugin extends JavaPlugin {
+/**
+ * Paper implementation of HungerBridge.
+ * Starts the HTTP bridge on plugin enable and stops it on disable.
+ */
+public final class HungerBridgePlugin extends JavaPlugin {
 
     private BridgeServer bridgeServer;
 
     @Override
     public void onEnable() {
-        getLogger().info("HungerBridge enabling...");
-
-        Logger loggerAdapter = (level, message) -> {
-            switch (level.toLowerCase()) {
-                case "error" -> getLogger().severe(message);
-                case "warn", "warning" -> getLogger().warning(message);
-                case "debug" -> getLogger().info("[DEBUG] " + message);
-                default -> getLogger().info(message);
+        Logger logger = (level, message) -> {
+            switch (level.toUpperCase()) {
+                case "WARN":
+                    getLogger().warning(message);
+                    break;
+                case "ERROR":
+                    getLogger().severe(message);
+                    break;
+                default:
+                    getLogger().info(message);
+                    break;
             }
         };
 
-        try {
-            Path cfgDir = getDataFolder().toPath();
-            Config config = Config.load(cfgDir);
+        Path configDir = getDataFolder().toPath();
+        Config config = Config.load(configDir, logger);
 
-            bridgeServer = new BridgeServer(config, loggerAdapter);
-            bridgeServer.start();
+        CommandExecutor executor = cmd ->
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
 
-            getLogger().info("HungerBridge enabled. HTTP /log on port " + config.port);
-        } catch (Exception e) {
-            getLogger().severe("Failed to start HungerBridge: " + e.getMessage());
-            e.printStackTrace();
-            getServer().getPluginManager().disablePlugin(this);
-        }
+        bridgeServer = new BridgeServer(config, logger, executor);
+        bridgeServer.start();
+
+        getLogger().info("HungerBridge (Paper) enabled.");
     }
 
     @Override
@@ -45,6 +51,6 @@ public class HungerBridgePlugin extends JavaPlugin {
             bridgeServer.stop();
             bridgeServer = null;
         }
-        getLogger().info("HungerBridge disabled.");
+        getLogger().info("HungerBridge (Paper) disabled.");
     }
 }

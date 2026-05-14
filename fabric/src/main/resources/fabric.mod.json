@@ -1,10 +1,12 @@
 {
   "schemaVersion": 1,
   "id": "hungerbridge",
-  "version": "${version}",
+  "version": "1.0.0",
   "name": "HungerBridge",
-  "description": "HTTP logging bridge (multiloader-ready).",
-  "authors": ["iFamished"],
+  "description": "Multiloader HTTP bridge for Paper and Fabric.",
+  "authors": [
+    "iFamished"
+  ],
   "license": "MIT",
   "environment": "server",
   "entrypoints": {
@@ -14,6 +16,6 @@
   },
   "depends": {
     "fabricloader": ">=0.18.4",
-    "minecraft": ">=1.21.1"
+    "minecraft": ">=1.21.11"
   }
 }

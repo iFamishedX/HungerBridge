@@ -4,19 +4,35 @@ import com.hungerbridge.common.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Simple adapter that forwards to SLF4J.
+ * Adapter that bridges the common Logger interface to SLF4J.
  */
-public class FabricLoggerAdapter implements Logger {
+public final class FabricLoggerAdapter implements Logger {
 
-    private final org.slf4j.Logger logger = LoggerFactory.getLogger("HungerBridge");
+    private final org.slf4j.Logger logger;
+
+    public FabricLoggerAdapter(String name) {
+        this.logger = LoggerFactory.getLogger(name);
+    }
+
+    public FabricLoggerAdapter(org.slf4j.Logger logger) {
+        this.logger = logger;
+    }
 
     @Override
     public void log(String level, String message) {
-        switch (level.toLowerCase()) {
-            case "error" -> logger.error(message);
-            case "warn", "warning" -> logger.warn(message);
-            case "debug" -> logger.debug(message);
-            default -> logger.info(message);
+        switch (level.toUpperCase()) {
+            case "WARN":
+                logger.warn(message);
+                break;
+            case "ERROR":
+                logger.error(message);
+                break;
+            case "DEBUG":
+                logger.debug(message);
+                break;
+            default:
+                logger.info(message);
+                break;
         }
     }
 }

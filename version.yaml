@@ -1,5 +1,6 @@
 run: true
-version: "1.9"
+version: "1.10"
 mc_version: "1.21.11"
 description: |
-  - Revert
+  HungerBridge release.
+  Multiloader HTTP bridge for Paper and Fabric.

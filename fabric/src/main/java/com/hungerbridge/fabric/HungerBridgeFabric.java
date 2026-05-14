@@ -1,6 +1,7 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.BridgeServer;
+import com.hungerbridge.common.CommandExecutor;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Logger;
 import net.fabricmc.api.DedicatedServerModInitializer;
@@ -9,33 +10,43 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
-public class HungerBridgeFabric implements DedicatedServerModInitializer {
+/**
+ * Fabric implementation of HungerBridge.
+ * Runs on dedicated servers only.
+ */
+public final class HungerBridgeFabric implements DedicatedServerModInitializer {
 
-    private static final org.slf4j.Logger LOG = LoggerFactory.getLogger("HungerBridge");
+    private static final org.slf4j.Logger SLF4J_LOGGER =
+            LoggerFactory.getLogger("HungerBridge");
+
     private BridgeServer bridgeServer;
 
     @Override
     public void onInitializeServer() {
-        LOG.info("HungerBridge (Fabric) initialized. Waiting for server instance to start.");
-        // Fabric's DedicatedServerModInitializer doesn't provide the server instance directly.
-        // We'll rely on server lifecycle hooks or a small delayed task in a real implementation.
-        // For now this class exists and will be completed when adding server startup hook.
+        // This entrypoint is called when the dedicated server is starting.
+        SLF4J_LOGGER.info("HungerBridge (Fabric) initializing.");
     }
 
-    // Helper to be called when the MinecraftServer instance is available (to be implemented later)
-    public void startForServer(MinecraftServer server) {
-        Logger loggerAdapter = new FabricLoggerAdapter();
-        try {
-            Path cfgDir = server.getServerDirectory().toPath().resolve("config").resolve("HungerBridge");
-            Config config = Config.load(cfgDir);
+    /**
+     * Called from a server lifecycle hook to actually start the bridge.
+     * In a real setup, you would wire this via a server-start callback.
+     */
+    public void start(MinecraftServer server) {
+        Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
 
-            bridgeServer = new BridgeServer(config, loggerAdapter);
-            bridgeServer.start();
+        // <server>/config/HungerBridge/config.yaml
+        Path configDir = server.getFile("config").toPath().resolve("HungerBridge");
+        Config config = Config.load(configDir, logger);
 
-            loggerAdapter.log("info", "HungerBridge HTTP /log on port " + config.port);
-        } catch (Exception e) {
-            LOG.error("Failed to start HungerBridge on Fabric", e);
-        }
+        CommandExecutor executor = cmd ->
+                server.getCommands().performPrefixedCommand(
+                        server.createCommandSourceStack(), cmd
+                );
+
+        bridgeServer = new BridgeServer(config, logger, executor);
+        bridgeServer.start();
+
+        SLF4J_LOGGER.info("HungerBridge (Fabric) started.");
     }
 
     public void stop() {
@@ -43,5 +54,6 @@ public class HungerBridgeFabric implements DedicatedServerModInitializer {
             bridgeServer.stop();
             bridgeServer = null;
         }
+        SLF4J_LOGGER.info("HungerBridge (Fabric) stopped.");
     }
 }
