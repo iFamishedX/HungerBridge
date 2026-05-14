@@ -1,14 +1,11 @@
 package com.hungerbridge.paper;
 
 import com.hungerbridge.common.CommandExecutor;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
-import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -35,20 +32,29 @@ public final class PaperCommandExecutor implements CommandExecutor {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            List<String> lines = new ArrayList<>();
 
-            MinecraftServer nms = ((CraftServer) Bukkit.getServer()).getServer();
+            // Capture console output
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(baos);
 
-            // Clone the real console CommandSourceStack
-            CommandSourceStack base = nms.createCommandSourceStack();
+            PrintStream oldOut = System.out;
+            PrintStream oldErr = System.err;
 
-            // Wrap it to intercept output
-            CommandSourceStack wrapper = base.withCallback((msg, type) -> {
-                lines.add(msg.getString());
-            });
+            System.setOut(ps);
+            System.setErr(ps);
 
-            // Execute command using vanilla dispatcher
-            nms.getCommands().performPrefixedCommand(wrapper, command);
+            try {
+                plugin.getServer().dispatchCommand(
+                        plugin.getServer().getConsoleSender(),
+                        command
+                );
+            } finally {
+                System.setOut(oldOut);
+                System.setErr(oldErr);
+            }
+
+            String output = baos.toString();
+            List<String> lines = Arrays.stream(output.split("\n")).toList();
 
             future.complete(lines);
         });
