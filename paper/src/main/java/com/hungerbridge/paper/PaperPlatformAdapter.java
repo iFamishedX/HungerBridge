@@ -3,12 +3,17 @@ package com.hungerbridge.paper;
 import com.hungerbridge.common.util.Platform;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PaperPlatformAdapter implements Platform.ServerAdapter {
 
@@ -28,7 +33,7 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
         return (cmd) -> {
             final List<String> output = new ArrayList<>();
 
-            // Custom sender that captures output
+            // Modern Paper CommandSender implementation
             CommandSender capturingSender = new CommandSender() {
 
                 @Override
@@ -51,22 +56,74 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
                     for (Component m : messages) output.add(m.toString());
                 }
 
-                // Required boilerplate
-                @Override public String getName() { return "HungerBridge"; }
-                @Override public boolean isPermissionSet(String s) { return true; }
-                @Override public boolean isPermissionSet(org.bukkit.permissions.Permission p) { return true; }
-                @Override public boolean hasPermission(String s) { return true; }
-                @Override public boolean hasPermission(org.bukkit.permissions.Permission p) { return true; }
-                @Override public org.bukkit.Server getServer() { return Bukkit.getServer(); }
-                @Override public org.bukkit.command.Spigot spigot() { return Bukkit.getConsoleSender().spigot(); }
-                @Override public org.bukkit.permissions.PermissionAttachment addAttachment(Plugin plugin) { return null; }
-                @Override public org.bukkit.permissions.PermissionAttachment addAttachment(Plugin plugin, int ticks) { return null; }
-                @Override public org.bukkit.permissions.PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) { return null; }
-                @Override public void removeAttachment(org.bukkit.permissions.PermissionAttachment attachment) {}
-                @Override public void recalculatePermissions() {}
-                @Override public java.util.Set<org.bukkit.permissions.PermissionAttachmentInfo> getEffectivePermissions() { return java.util.Collections.emptySet(); }
-                @Override public boolean isOp() { return true; }
-                @Override public void setOp(boolean value) {}
+                // REQUIRED ABSTRACT METHODS (Paper 1.21.x)
+                @Override
+                public String getName() {
+                    return "HungerBridge";
+                }
+
+                @Override
+                public Server getServer() {
+                    return Bukkit.getServer();
+                }
+
+                @Override
+                public boolean isOp() {
+                    return true;
+                }
+
+                @Override
+                public void setOp(boolean value) {
+                    // ignore
+                }
+
+                @Override
+                public boolean isPermissionSet(String name) {
+                    return true;
+                }
+
+                @Override
+                public boolean isPermissionSet(Permission perm) {
+                    return true;
+                }
+
+                @Override
+                public boolean hasPermission(String name) {
+                    return true;
+                }
+
+                @Override
+                public boolean hasPermission(Permission perm) {
+                    return true;
+                }
+
+                @Override
+                public PermissionAttachment addAttachment(Plugin plugin) {
+                    return null;
+                }
+
+                @Override
+                public PermissionAttachment addAttachment(Plugin plugin, int ticks) {
+                    return null;
+                }
+
+                @Override
+                public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
+                    return null;
+                }
+
+                @Override
+                public void removeAttachment(PermissionAttachment attachment) {
+                }
+
+                @Override
+                public void recalculatePermissions() {
+                }
+
+                @Override
+                public Set<PermissionAttachmentInfo> getEffectivePermissions() {
+                    return Set.of();
+                }
             };
 
             try {
