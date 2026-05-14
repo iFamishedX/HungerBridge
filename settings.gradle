@@ -3,3 +3,11 @@ rootProject.name = "HungerBridge"
 include("common")
 include("fabric")
 include("paper")
+
+pluginManagement {
+    repositories {
+        maven { url = "https://maven.fabricmc.net/" }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
