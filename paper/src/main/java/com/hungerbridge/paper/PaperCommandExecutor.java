@@ -40,8 +40,8 @@ public final class PaperCommandExecutor implements CommandExecutor {
 
             List<String> lines = new ArrayList<>();
 
-            // THIS is the correct logger for Purpur/Paper console output
-            Logger mcLogger = (Logger) LogManager.getLogger("Minecraft");
+            // THIS is the correct logger for Purpur 1.21.11
+            Logger serverLogger = (Logger) LogManager.getLogger("Server");
 
             Appender appender = new AbstractAppender(
                     "HungerBridgeCapture",
@@ -75,7 +75,7 @@ public final class PaperCommandExecutor implements CommandExecutor {
             };
 
             appender.start();
-            mcLogger.addAppender(appender);
+            serverLogger.addAppender(appender);
 
             try {
                 plugin.getServer().dispatchCommand(
@@ -83,7 +83,7 @@ public final class PaperCommandExecutor implements CommandExecutor {
                         command
                 );
             } finally {
-                mcLogger.removeAppender(appender);
+                serverLogger.removeAppender(appender);
                 appender.stop();
             }
 
