@@ -1,9 +1,3 @@
 dependencies {
     implementation "org.yaml:snakeyaml:2.2"
 }
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
