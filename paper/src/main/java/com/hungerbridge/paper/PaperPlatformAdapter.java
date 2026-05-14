@@ -1,19 +1,13 @@
 package com.hungerbridge.paper;
 
 import com.hungerbridge.common.util.Platform;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class PaperPlatformAdapter implements Platform.ServerAdapter {
 
@@ -31,62 +25,23 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
     @Override
     public Platform.CommandExecutor getCommandExecutor(Object server) {
         return (cmd) -> {
-            final List<String> output = new ArrayList<>();
+            List<String> output = new ArrayList<>();
 
-            CommandSender capturingSender = new CommandSender() {
-
-                // Paper's CommandSender.name() -> Component
-                @Override
-                public Component name() {
-                    return Component.text("HungerBridge");
-                }
-
-                // String-based messages (these definitely exist)
-                @Override
-                public void sendMessage(String message) {
-                    output.add(message);
-                }
-
-                @Override
-                public void sendMessage(String[] messages) {
-                    for (String m : messages) output.add(m);
-                }
-
-                // Permissions
-                @Override public boolean isPermissionSet(String name) { return true; }
-                @Override public boolean isPermissionSet(Permission perm) { return true; }
-                @Override public boolean hasPermission(String name) { return true; }
-                @Override public boolean hasPermission(Permission perm) { return true; }
-
-                @Override public PermissionAttachment addAttachment(Plugin plugin) { return null; }
-                @Override public PermissionAttachment addAttachment(Plugin plugin, int ticks) { return null; }
-                @Override public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) { return null; }
-                @Override public void removeAttachment(PermissionAttachment attachment) {}
-                @Override public void recalculatePermissions() {}
-                @Override public Set<PermissionAttachmentInfo> getEffectivePermissions() { return Set.of(); }
-
-                // Op status
-                @Override public boolean isOp() { return true; }
-                @Override public void setOp(boolean value) {}
-
-                // Server
-                @Override public Server getServer() { return Bukkit.getServer(); }
-            };
+            // Use the REAL console sender — no custom implementation needed
+            CommandSender sender = Bukkit.getConsoleSender();
 
             try {
                 Bukkit.getScheduler().callSyncMethod(plugin, () -> {
-                    Bukkit.dispatchCommand(capturingSender, cmd);
+                    boolean ok = Bukkit.dispatchCommand(sender, cmd);
+                    output.add(ok ? "1" : "0");
                     return null;
                 }).get();
             } catch (Exception e) {
                 Bukkit.getLogger().severe("HungerBridge command execution failed: " + e.getMessage());
+                return "0";
             }
 
-            if (output.isEmpty()) {
-                return "";
-            }
-
-            return String.join("\n", output);
+            return output.isEmpty() ? "" : String.join("\n", output);
         };
     }
 
