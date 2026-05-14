@@ -1,6 +1,5 @@
 run: true
-version: "1.10"
+version: "1.10.1"
 mc_version: "1.21.11"
 description: |
-  HungerBridge release.
-  Multiloader HTTP bridge for Paper and Fabric.
+  - new workflow
