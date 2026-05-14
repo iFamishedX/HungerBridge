@@ -1,22 +1,26 @@
 plugins {
-    id 'java'
-    id 'fabric-loom' version '1.6.12'
-}
-
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    id 'fabric-loom' version '1.11.8'
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:1.21.1"
+    minecraft "com.mojang:minecraft:1.21.11"
     mappings loom.officialMojangMappings()
 
-    modImplementation "net.fabricmc:fabric-loader:0.15.11"
+    modImplementation "net.fabricmc:fabric-loader:0.18.4"
+
+    implementation project(":common")
 }
 
-sourceSets {
-    main {
-        java.srcDirs = ["src/main/java"]
-        resources.srcDirs = ["src/main/resources"]
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        hungerbridge {
+            sourceSet sourceSets.main
+        }
     }
 }

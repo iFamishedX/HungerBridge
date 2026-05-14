@@ -2,10 +2,11 @@ plugins {
     id 'java'
 }
 
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
+dependencies {
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.yaml:snakeyaml:2.2'
 }
 
-dependencies {
-    // no Minecraft dependencies here
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
 }

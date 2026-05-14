@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+dependencies {
+    implementation project(':common')
+    implementation project(':paper')
+    implementation project(':fabric')
+}
+
+tasks.jar {
+    // Final artifact name: HungerBridge-<version>.jar
+    archiveBaseName.set('HungerBridge')
+    archiveVersion.set(project.version.toString())
+    archiveClassifier.set(null)   // ← CRITICAL: removes "-plain"
+
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+    // Merge compiled classes
+    from project(':common').sourceSets.main.output
+    from project(':paper').sourceSets.main.output
+    from project(':fabric').sourceSets.main.output
+
+    // Merge resources (plugin.yml + fabric.mod.json)
+    from project(':paper').sourceSets.main.resources
+    from project(':fabric').sourceSets.main.resources
+}
+
+tasks.build.dependsOn(tasks.jar)

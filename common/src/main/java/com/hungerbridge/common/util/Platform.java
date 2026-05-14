@@ -2,32 +2,38 @@ package com.hungerbridge.common.util;
 
 import java.nio.file.Path;
 
-public final class Platform {
+public class Platform {
 
-    private Platform() {}
+    // Stored adapter instance
+    private static ServerAdapter adapter;
 
-    public interface ServerAdapter {
-        Path getConfigDir(Object server);
-        CommandExecutor getCommandExecutor(Object server);
-        Logger getLogger();
-    }
+    // Stored executor + logger
+    private static CommandExecutor executor;
+    private static Logger logger;
 
-    @FunctionalInterface
+    // -----------------------------
+    // Interfaces
+    // -----------------------------
+
     public interface CommandExecutor {
-        /**
-         * Execute a command on the server and return its textual output.
-         * Implementations should return exactly what the server would send
-         * to the console / sender, joined by newlines.
-         */
-        String execute(String command);
+        String run(String command, boolean silent);
     }
 
-    @FunctionalInterface
     public interface Logger {
         void log(String level, String message);
     }
 
-    private static ServerAdapter adapter;
+    public interface ServerAdapter {
+        Path getConfigDir(Object server);
+
+        CommandExecutor getCommandExecutor(Object server);
+
+        Logger getLogger();
+    }
+
+    // -----------------------------
+    // Adapter registration
+    // -----------------------------
 
     public static void setAdapter(ServerAdapter a) {
         adapter = a;
@@ -35,5 +41,26 @@ public final class Platform {
 
     public static ServerAdapter adapter() {
         return adapter;
+    }
+
+    // -----------------------------
+    // Initialization
+    // -----------------------------
+
+    public static void init(CommandExecutor exec, Logger log) {
+        executor = exec;
+        logger = log;
+    }
+
+    // -----------------------------
+    // Accessors
+    // -----------------------------
+
+    public static CommandExecutor executor() {
+        return executor;
+    }
+
+    public static Logger logger() {
+        return logger;
     }
 }
