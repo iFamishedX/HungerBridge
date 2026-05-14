@@ -2,8 +2,7 @@ plugins {
     id 'java'
 }
 
-subprojects {
-    apply plugin: 'java'
+allprojects {
     group = 'com.hungerbridge'
     version = '1.0.0'
 
@@ -12,6 +11,10 @@ subprojects {
         maven { url = 'https://repo.papermc.io/repository/maven-public/' }
         maven { url = 'https://maven.fabricmc.net/' }
     }
+}
+
+subprojects {
+    apply plugin: 'java'
 }
 
 project(':common') {
@@ -24,13 +27,46 @@ project(':common') {
 project(':paper') {
     dependencies {
         implementation project(':common')
-        compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+        compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
     }
 }
 
 project(':fabric') {
+    apply plugin: 'fabric-loom'
+
     dependencies {
+        minecraft "com.mojang:minecraft:1.21.11"
+        mappings loom.officialMojangMappings()
+        modImplementation "net.fabricmc:fabric-loader:0.18.4"
         implementation project(':common')
-        // add your fabric loader + api deps here as needed
+    }
+
+    loom {
+        splitEnvironmentSourceSets()
+        mods {
+            hungerbridge {
+                sourceSet sourceSets.main
+            }
+        }
     }
 }
+
+tasks.register('uberJar', Jar) {
+    archiveBaseName.set('HungerBridge')
+    archiveVersion.set(project.version.toString())
+    archiveClassifier.set('')
+
+    // include compiled classes from all modules
+    from project(':common').sourceSets.main.output
+    from project(':paper').sourceSets.main.output
+    from project(':fabric').sourceSets.main.output
+
+    // include resources from all modules
+    from project(':paper').sourceSets.main.resources
+    from project(':fabric').sourceSets.main.resources
+
+    // ensure plugin.yml and fabric.mod.json both exist
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+build.dependsOn 'uberJar'
