@@ -2,7 +2,7 @@ package com.hungerbridge.common;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
+// import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,7 +88,7 @@ public final class Config {
                 }
             }
 
-            Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
+            Yaml yaml = new Yaml();
             Map<String, Object> root;
             try (InputStream in = Files.newInputStream(configFile)) {
                 Object loaded = yaml.load(in);
