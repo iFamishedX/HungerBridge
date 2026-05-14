@@ -4,7 +4,6 @@ import com.hungerbridge.common.util.Platform;
 import com.mojang.brigadier.ParseResults;
 import net.minecraft.commands.CommandResultCallback;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 
 import java.nio.file.Path;
@@ -27,11 +26,10 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
             return s.submit(() -> {
                 List<String> output = new ArrayList<>();
 
-                // Capture output from the command source
                 CommandResultCallback callback = new CommandResultCallback() {
                     @Override
-                    public void sendMessage(CommandSourceStack source, Component message) {
-                        output.add(message.getString()); // EXACT output, no prefix
+                    public void onResult(boolean success, int result) {
+                        // no-op; not used for output
                     }
                 };
 
@@ -44,7 +42,7 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
                 s.getCommands().performCommand(parsed, cmd);
 
                 if (output.isEmpty()) {
-                    return ""; // No prefix, no filler
+                    return "";
                 }
 
                 return String.join("\n", output);

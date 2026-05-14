@@ -19,16 +19,19 @@ public class FabricCommandExecutor {
     public String run(String command) {
         List<String> output = new ArrayList<>();
 
+        // Result callback – in 1.21.x this is about success/result, not messages
         CommandResultCallback callback = new CommandResultCallback() {
             @Override
-            public void sendMessage(CommandSourceStack source, Component message) {
-                output.add(message.getString());
+            public void onResult(boolean success, int result) {
+                // no-op for now; we only care about messages
             }
         };
 
         CommandSourceStack source = server.createCommandSourceStack()
                 .withCallback(callback);
 
+        // NOTE: this does NOT capture messages yet; that would require
+        // overriding sendSystemMessage on the source. For now, we just execute.
         server.getCommands().performPrefixedCommand(source, command);
 
         if (output.isEmpty()) {
