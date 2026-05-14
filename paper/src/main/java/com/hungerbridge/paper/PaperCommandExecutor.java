@@ -10,7 +10,6 @@ import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -56,6 +55,16 @@ public final class PaperCommandExecutor implements CommandExecutor {
 
                     String msg = event.getMessage().getFormattedMessage();
                     if (msg == null) return;
+
+                    // Remove HungerBridge prefix ONLY if present
+                    if (msg.startsWith("[HungerBridge] ")) {
+                        msg = msg.substring("[HungerBridge] ".length());
+                    }
+
+                    // Hide HungerBridge internal logs from console
+                    if (msg.startsWith("Executing command via /v1/run:")) {
+                        return; // do not print to console
+                    }
 
                     String trimmed = msg.trim();
                     if (!trimmed.isEmpty()) {
