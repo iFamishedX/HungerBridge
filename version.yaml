@@ -1,5 +1,5 @@
 run: true
-version: "1.10.2"
+version: "1.10.3"
 mc_version: "1.21.11"
 description: |
-  - new workflow
+  - Fix permissions
