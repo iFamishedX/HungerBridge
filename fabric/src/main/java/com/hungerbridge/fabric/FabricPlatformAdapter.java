@@ -2,6 +2,7 @@ package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.util.Platform;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.storage.LevelResource;
 
 import java.nio.file.Path;
 
@@ -10,7 +11,7 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
     @Override
     public Path getConfigDir(Object server) {
         MinecraftServer s = (MinecraftServer) server;
-        return s.getSavePath().resolve("config/HungerBridge");
+        return s.getWorldPath(LevelResource.CONFIG).resolve("HungerBridge");
     }
 
     @Override
@@ -20,11 +21,11 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
 
             // Run command on main thread
             return s.submit(() -> {
-                boolean ok = s.getCommands().performPrefixedCommand(
+                int result = s.getCommands().performCommand(
                         s.createCommandSourceStack(),
                         cmd
                 );
-                return ok ? "1" : "0";
+                return result == 1 ? "1" : "0";
             }).join();
         };
     }
