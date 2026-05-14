@@ -1,7 +1,6 @@
 package com.hungerbridge.paper;
 
 import com.hungerbridge.common.CommandExecutor;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,7 +34,7 @@ public final class PaperCommandExecutor implements CommandExecutor {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             CapturingSender sender = new CapturingSender();
             plugin.getServer().dispatchCommand(sender, command);
-            future.complete(sender.getLines());
+            future.complete(sender.lines);
         });
 
         try {
@@ -54,19 +53,22 @@ public final class PaperCommandExecutor implements CommandExecutor {
             lines.add(message);
         }
 
+        // Adventure API
         @Override
-        public void sendMessage(Component component) {
-            lines.add(Component.text().append(component).build().toString());
+        public void sendMessage(net.kyori.adventure.text.Component component) {
+            lines.add(component.toString());
         }
 
-        public List<String> getLines() {
-            return lines;
+        // REQUIRED for 1.21.x
+        @Override
+        public net.kyori.adventure.text.Component name() {
+            return net.kyori.adventure.text.Component.text("HungerBridge");
         }
 
-        // REQUIRED for 1.20.5+ API
+        // REQUIRED — but we can return a dummy Spigot instance
         @Override
-        public Component name() {
-            return Component.text("HungerBridge");
+        public Spigot spigot() {
+            return new Spigot();
         }
 
         // Minimal required implementations
