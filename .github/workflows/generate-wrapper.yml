@@ -24,7 +24,8 @@ jobs:
         run: echo "" > settings-wrapper.gradle
 
       - name: Generate Gradle Wrapper (8.10.2)
-        run: gradle wrapper --gradle-version 8.10.2 -c settings-wrapper.gradle
+        run: gradle wrapper --gradle-version 8.10.2 --init-script init-no-project.gradle
+
 
       - name: Make wrapper executable
         run: chmod +x gradlew
