@@ -64,7 +64,7 @@ jobs:
         run: |
           mkdir -p release
           FINAL_JAR="HungerBridge-${VERSION}+${MC_VERSION}.jar"
-          cp build/libs/HungerBridge-${VERSION}.jar "release/${FINAL_JAR}"
+          cp universal/build/libs/*.jar release/${FINAL_JAR}
           echo "FINAL_JAR=${FINAL_JAR}" >> $GITHUB_ENV
       - name: Create GitHub Release
         if: ${{ env.RUN == 'true' }}

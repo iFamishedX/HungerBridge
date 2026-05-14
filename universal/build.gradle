@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation project(':common')
+    implementation project(':paper')
+    implementation project(':fabric')
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+tasks.jar {
+    archiveBaseName.set('HungerBridge')
+    archiveVersion.set(project.version.toString())
+    archiveClassifier.set('')
+
+    // include compiled classes from all modules
+    from project(':common').sourceSets.main.output
+    from project(':paper').sourceSets.main.output
+    from project(':fabric').sourceSets.main.output
+
+    // include resources from all modules
+    from project(':paper').sourceSets.main.resources
+    from project(':fabric').sourceSets.main.resources
+
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
