@@ -1,7 +1,3 @@
-rootProject.name = "HungerBridge"
-
-include("common", "paper", "fabric")
-
 pluginManagement {
     repositories {
         mavenCentral()
@@ -10,3 +6,7 @@ pluginManagement {
         maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
     }
 }
+
+rootProject.name = "HungerBridge"
+
+include("common", "paper", "fabric")
