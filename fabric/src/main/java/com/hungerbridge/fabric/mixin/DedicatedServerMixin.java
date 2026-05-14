@@ -1,7 +1,8 @@
 package com.hungerbridge.fabric.mixin;
 
 import com.hungerbridge.common.HungerBridgeCommon;
-import net.minecraft.server.MinecraftServer;
+import com.hungerbridge.common.util.Platform;
+import com.hungerbridge.fabric.FabricPlatformAdapter;
 import net.minecraft.server.dedicated.DedicatedServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -9,11 +10,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(DedicatedServer.class)
-public abstract class DedicatedServerMixin {
+public class DedicatedServerMixin {
 
-    @Inject(method = "initServer", at = @At("RETURN"))
-    private void hungerbridge$onServerStart(CallbackInfoReturnable<Boolean> cir) {
-        MinecraftServer server = (MinecraftServer) (Object) this;
-        HungerBridgeCommon.onServerStart(server);
+    private static final HungerBridgeCommon BRIDGE = new HungerBridgeCommon();
+
+    @Inject(method = "setupServer", at = @At("RETURN"))
+    private void hungerbridge$start(CallbackInfoReturnable<Boolean> cir) {
+        DedicatedServer server = (DedicatedServer) (Object) this;
+
+        Platform.setAdapter(new FabricPlatformAdapter());
+        BRIDGE.start(server);
     }
 }
