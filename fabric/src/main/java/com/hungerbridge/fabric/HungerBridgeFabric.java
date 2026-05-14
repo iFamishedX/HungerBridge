@@ -35,7 +35,7 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
 
         // <server>/config/HungerBridge/config.yaml
-        Path configDir = server.getFile("config").toPath().resolve("HungerBridge");
+        Path configDir = server.getFile("config").resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
         CommandExecutor executor = cmd ->
