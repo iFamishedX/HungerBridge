@@ -15,44 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setuname: Generate Gradle Wrapper
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/generate-wrapper.yml"
-
-jobs:
-  generate-wrapper:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
         uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Use system Gradle to generate wrapper
-        run: |
-          gradle -q wrapper --gradle-version 8.10.2 --distribution-type bin
-
-      - name: Commit wrapper
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add gradlew gradlew.bat gradle/wrapper/gradle-wrapper.properties
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "chore: update Gradle wrapper to 8.10.2"
-            git push
-          fi
-p-java@v4
         with:
           distribution: temurin
           java-version: 17
@@ -60,8 +23,8 @@ p-java@v4
       - name: Install Gradle (system)
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Generate Gradle Wrapper (8.10.2) without Fabric
-        run: gradle wrapper --gradle-version 8.10.2 -c settings-wrapper.gradle
+      - name: Generate Gradle Wrapper (8.10.2)
+        run: gradle wrapper --gradle-version 8.10.2 --distribution-type bin
 
       - name: Make wrapper executable
         run: chmod +x gradlew
