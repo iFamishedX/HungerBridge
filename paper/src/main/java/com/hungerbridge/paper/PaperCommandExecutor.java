@@ -1,8 +1,8 @@
 package com.hungerbridge.paper;
 
 import com.hungerbridge.common.CommandExecutor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -53,13 +53,13 @@ public final class PaperCommandExecutor implements CommandExecutor {
             return lines;
         }
 
-        // All other methods: no-op or return defaults
+        // Minimal required overrides
         @Override public String getName() { return "HungerBridge"; }
         @Override public boolean isPermissionSet(String s) { return true; }
         @Override public boolean hasPermission(String s) { return true; }
         @Override public boolean isOp() { return true; }
         @Override public void setOp(boolean b) {}
-        @Override public Server getServer() { return Bukkit.getServer(); }
+        @Override public org.bukkit.Server getServer() { return Bukkit.getServer(); }
         @Override public Spigot spigot() { return new Spigot(); }
     }
 }

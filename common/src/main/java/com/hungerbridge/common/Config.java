@@ -24,6 +24,11 @@ public final class Config {
     private final boolean enabledRun;
     private final boolean enabledLog;
 
+    // Added for JSON API
+    private String platform = "unknown";
+    private String minecraftVersion = "unknown";
+    private final String bridgeVersion = "1.11";
+
     public Config(int port, String authKey, boolean enabledRun, boolean enabledLog) {
         this.port = port;
         this.authKey = authKey;
@@ -47,12 +52,29 @@ public final class Config {
         return enabledLog;
     }
 
+    // JSON API fields
+    public String getVersion() {
+        return bridgeVersion;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public String getMinecraftVersion() {
+        return minecraftVersion;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+
+    public void setMinecraftVersion(String minecraftVersion) {
+        this.minecraftVersion = minecraftVersion;
+    }
+
     /**
      * Load configuration from the given directory, generating a default config.yaml if missing.
-     *
-     * @param configDir directory where config.yaml should live
-     * @param logger    logger for informational messages
-     * @return loaded Config instance
      */
     @SuppressWarnings("unchecked")
     public static Config load(Path configDir, Logger logger) {

@@ -1,38 +1,30 @@
 package com.hungerbridge.fabric;
 
-import com.hungerbridge.common.Logger;
-import org.slf4j.LoggerFactory;
+import com.hungerbridge.common.CommandExecutor;
+import net.minecraft.server.MinecraftServer;
 
-/**
- * Adapter that bridges the common Logger interface to SLF4J.
- */
-public final class FabricLoggerAdapter implements Logger {
+import java.util.List;
 
-    private final org.slf4j.Logger logger;
+public final class FabricCommandExecutor implements CommandExecutor {
 
-    public FabricLoggerAdapter(String name) {
-        this.logger = LoggerFactory.getLogger(name);
-    }
+    private final MinecraftServer server;
 
-    public FabricLoggerAdapter(org.slf4j.Logger logger) {
-        this.logger = logger;
+    public FabricCommandExecutor(MinecraftServer server) {
+        this.server = server;
     }
 
     @Override
-    public void log(String level, String message) {
-        switch (level.toUpperCase()) {
-            case "WARN":
-                logger.warn(message);
-                break;
-            case "ERROR":
-                logger.error(message);
-                break;
-            case "DEBUG":
-                logger.debug(message);
-                break;
-            default:
-                logger.info(message);
-                break;
-        }
+    public void execute(String command) {
+        server.execute(() ->
+                server.getCommands().performPrefixedCommand(
+                        server.createCommandSourceStack(), command
+                )
+        );
+    }
+
+    @Override
+    public List<String> executeWithOutput(String command) {
+        execute(command);
+        return null; // Fabric cannot capture output
     }
 }

@@ -4,6 +4,7 @@ import com.hungerbridge.common.BridgeServer;
 import com.hungerbridge.common.CommandExecutor;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Path;
@@ -35,11 +36,12 @@ public final class HungerBridgePlugin extends JavaPlugin {
         Path configDir = getDataFolder().toPath();
         Config config = Config.load(configDir, logger);
 
-        // Ensure commands are always executed on the main server thread
-        CommandExecutor executor = command ->
-                getServer().getScheduler().runTask(this, () ->
-                        getServer().dispatchCommand(getServer().getConsoleSender(), command)
-                );
+        // Set platform + MC version for JSON /v1/status and /v1/version
+        config.setPlatform("paper");
+        config.setMinecraftVersion(Bukkit.getVersion());
+
+        // Use Paper executor with output capture
+        CommandExecutor executor = new PaperCommandExecutor(this);
 
         bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
