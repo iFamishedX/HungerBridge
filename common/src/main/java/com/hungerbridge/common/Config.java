@@ -88,7 +88,7 @@ public final class Config {
                 }
             }
 
-            Yaml yaml = new Yaml(new SafeConstructor());
+            Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
             Map<String, Object> root;
             try (InputStream in = Files.newInputStream(configFile)) {
                 Object loaded = yaml.load(in);
