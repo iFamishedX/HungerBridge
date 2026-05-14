@@ -21,14 +21,18 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
             MinecraftServer s = (MinecraftServer) server;
 
             return s.submit(() -> {
+                // NOTE: This executes the command but does NOT yet capture output text.
+                // Proper output capture on Fabric 1.21.x realistically requires a mixin
+                // into CommandSourceStack#sendSystemMessage. This is a clean hook for that.
                 CommandSourceStack source = s.createCommandSourceStack();
 
                 ParseResults<CommandSourceStack> parsed =
                         s.getCommands().getDispatcher().parse(cmd, source);
 
-                boolean ok = s.getCommands().performCommand(parsed, cmd);
+                s.getCommands().performCommand(parsed, cmd);
 
-                return ok ? "1" : "0";
+                // Placeholder: no textual output captured yet.
+                return "";
             }).join();
         };
     }

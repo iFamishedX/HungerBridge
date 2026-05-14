@@ -59,13 +59,20 @@ jobs:
         run: |
           gradle clean build --no-daemon
 
-      - name: Prepare final artifact
+      - name: Prepare artifacts
         if: ${{ env.RUN == 'true' }}
         run: |
           mkdir -p release
-          FINAL_JAR="HungerBridge-${VERSION}+${MC_VERSION}.jar"
-          cp universal/build/libs/*.jar release/${FINAL_JAR}
-          echo "FINAL_JAR=${FINAL_JAR}" >> $GITHUB_ENV
+
+          PAPER_JAR="HungerBridge-paper-${VERSION}+${MC_VERSION}.jar"
+          FABRIC_JAR="HungerBridge-fabric-${VERSION}+${MC_VERSION}.jar"
+
+          cp paper/build/libs/*.jar release/${PAPER_JAR}
+          cp fabric/build/libs/*.jar release/${FABRIC_JAR}
+
+          echo "PAPER_JAR=${PAPER_JAR}" >> $GITHUB_ENV
+          echo "FABRIC_JAR=${FABRIC_JAR}" >> $GITHUB_ENV
+
       - name: Create GitHub Release
         if: ${{ env.RUN == 'true' }}
         uses: softprops/action-gh-release@v2
@@ -77,4 +84,5 @@ jobs:
           name: ${{ env.VERSION }}
           body: ${{ env.DESC }}
           files: |
-            release/${{ env.FINAL_JAR }}
+            release/${{ env.PAPER_JAR }}
+            release/${{ env.FABRIC_JAR }}

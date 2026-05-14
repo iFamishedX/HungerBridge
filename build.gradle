@@ -2,14 +2,13 @@ plugins {
     id 'java'
 }
 
-subprojects {
-    apply plugin: 'java'
-    group = 'com.hungerbridge'
+allprojects {
+    group = "com.hungerbridge"
     version = System.getenv("VERSION") ?: "0.0.0"
 
     repositories {
         mavenCentral()
-        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
-        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = "https://repo.papermc.io/repository/maven-public/" }
+        maven { url = "https://maven.fabricmc.net/" }
     }
 }

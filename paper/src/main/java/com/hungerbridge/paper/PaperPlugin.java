@@ -1,47 +1,42 @@
 package com.hungerbridge.paper;
 
+import com.hungerbridge.common.BridgeServer;
 import com.hungerbridge.common.Config;
-import com.hungerbridge.common.Server;
 import com.hungerbridge.common.util.Platform;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Path;
 
-public class HungerBridgePaper extends JavaPlugin {
+public class PaperPlugin extends JavaPlugin {
 
-    private Server httpServer;
+    private BridgeServer bridgeServer;
 
     @Override
     public void onEnable() {
-
-        // Register Paper adapter
         Platform.setAdapter(new PaperPlatformAdapter(this));
 
         try {
-            Path cfgDir = getDataFolder().toPath().resolve("config");
+            Platform.ServerAdapter adapter = Platform.adapter();
+
+            Path cfgDir = adapter.getConfigDir(getServer());
             Config config = Config.load(cfgDir);
 
-            // Initialize Platform with adapter-provided executor + logger
-            Platform.init(
-                    Platform.adapter().getCommandExecutor(null),
-                    Platform.adapter().getLogger()
-            );
+            Platform.CommandExecutor executor = adapter.getCommandExecutor(getServer());
+            Platform.Logger logger = adapter.getLogger();
 
-            httpServer = new Server(config);
-            httpServer.start();
+            bridgeServer = new BridgeServer(config, executor, logger);
+            bridgeServer.start();
 
             getLogger().info("HungerBridge HTTP server started on port " + config.port);
-
         } catch (Exception e) {
             getLogger().severe("Failed to start HungerBridge: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
     @Override
     public void onDisable() {
-        if (httpServer != null) {
-            httpServer.stop();
+        if (bridgeServer != null) {
+            bridgeServer.stop();
         }
     }
 }

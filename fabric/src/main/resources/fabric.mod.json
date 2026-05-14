@@ -1,25 +1,20 @@
 {
   "schemaVersion": 1,
   "id": "hungerbridge",
-  "version": "1.0.0",
-
+  "version": "${version}",
   "name": "HungerBridge",
-  "description": "HTTP bridge for Minecraft servers",
-  "authors": ["iFamishedX"],
-
-  "environment": "*",
-
+  "description": "HTTP bridge for executing server commands and logging.",
+  "authors": ["iFamished"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "server",
   "entrypoints": {
     "server": [
       "com.hungerbridge.fabric.HungerBridgeFabric"
     ]
   },
-
-  "mixins": [
-    "hungerbridge.mixins.json"
-  ],
-
   "depends": {
-    "fabricloader": ">=0.14.0"
+    "fabricloader": ">=0.15.0",
+    "minecraft": ">=1.21"
   }
 }
