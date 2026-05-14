@@ -1,4 +1,7 @@
 name: Release
+defaults:
+  run:
+    working-directory: HungerBridge
 
 on:
   workflow_dispatch:
