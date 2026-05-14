@@ -40,8 +40,8 @@ public final class PaperCommandExecutor implements CommandExecutor {
 
             List<String> lines = new ArrayList<>();
 
-            // THIS is the correct logger for Purpur 1.21.11
-            Logger serverLogger = (Logger) LogManager.getLogger("Server");
+            // ROOT LOGGER — the only logger that actually works on Purpur
+            Logger root = (Logger) LogManager.getRootLogger();
 
             Appender appender = new AbstractAppender(
                     "HungerBridgeCapture",
@@ -75,7 +75,7 @@ public final class PaperCommandExecutor implements CommandExecutor {
             };
 
             appender.start();
-            serverLogger.addAppender(appender);
+            root.addAppender(appender);
 
             try {
                 plugin.getServer().dispatchCommand(
@@ -83,7 +83,7 @@ public final class PaperCommandExecutor implements CommandExecutor {
                         command
                 );
             } finally {
-                serverLogger.removeAppender(appender);
+                root.removeAppender(appender);
                 appender.stop();
             }
 
