@@ -3,15 +3,11 @@ name: Build & Release
 on:
   push:
     branches:
-      - main
-      - master
-      - dev
-    tags:
-      - "v*.*.*"
+      - "**"
   workflow_dispatch:
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
 
     steps:
@@ -45,7 +41,7 @@ jobs:
       - name: Build
         run: ./gradlew clean build --no-daemon
 
-      - name: Prepare artifacts
+      - name: Prepare release artifacts
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           MC_VERSION="${{ steps.version.outputs.mc_version }}"
@@ -53,18 +49,10 @@ jobs:
           cp paper/build/libs/*.jar "release/HungerBridge-paper-${VERSION}+${MC_VERSION}.jar"
           cp fabric/build/libs/*.jar "release/HungerBridge-fabric-${VERSION}+${MC_VERSION}.jar"
 
-      - name: Upload workflow artifacts (non-tag builds)
-        if: startsWith(github.ref, 'refs/heads/')
-        uses: actions/upload-artifact@v4
-        with:
-          name: HungerBridge-${{ steps.version.outputs.version }}
-          path: release/
-
-      - name: Create GitHub Release (tag builds only)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: v${{ steps.version.outputs.version }}
           name: HungerBridge ${{ steps.version.outputs.version }}
           body: |
             HungerBridge release.
@@ -72,3 +60,5 @@ jobs:
           files: |
             release/HungerBridge-paper-${{ steps.version.outputs.version }}+${{ steps.version.outputs.mc_version }}.jar
             release/HungerBridge-fabric-${{ steps.version.outputs.version }}+${{ steps.version.outputs.mc_version }}.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
