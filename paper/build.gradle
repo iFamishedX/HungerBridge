@@ -18,3 +18,11 @@ tasks.jar {
     // include common classes inside the Paper plugin JAR
     from(project(":common").sourceSets.main.output)
 }
+
+processResources {
+    filesMatching("plugin.yml") {
+        expand(
+            version: project.version
+        )
+    }
+}
