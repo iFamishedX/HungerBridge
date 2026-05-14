@@ -4,18 +4,12 @@ import com.sun.net.httpserver.HttpExchange;
 
 public class Auth {
 
-    private final Config config;
-
-    public Auth(Config config) {
-        this.config = config;
-    }
-
-    public boolean check(HttpExchange exchange) {
+    public static boolean check(Config config, HttpExchange exchange) {
         if (!config.auth.enabled) return true;
 
-        String header = exchange.getRequestHeaders().getFirst("X-HungerBridge-Key");
+        String header = exchange.getRequestHeaders().getFirst("Authorization");
         if (header == null) return false;
 
-        return header.equals(config.auth.key);
+        return header.equals("Bearer " + config.auth.key);
     }
 }

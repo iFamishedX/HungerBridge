@@ -8,54 +8,103 @@ import java.util.List;
 public class Config {
 
     public final int port;
-    public final String token;
 
-    public Config(int port, String token) {
-        this.port = port;
-        this.token = token;
+    public static class Auth {
+        public final boolean enabled;
+        public final String key;
+
+        public Auth(boolean enabled, String key) {
+            this.enabled = enabled;
+            this.key = key;
+        }
     }
 
-    public static Config load(Path configDir) throws IOException {
-        if (!Files.exists(configDir)) {
-            Files.createDirectories(configDir);
-        }
+    public static class Endpoints {
+        public final boolean ping;
+        public final boolean run;
+        public final boolean log;
 
-        Path file = configDir.resolve("hungerbridge.yml");
+        public Endpoints(boolean ping, boolean run, boolean log) {
+            this.ping = ping;
+            this.run = run;
+            this.log = log;
+        }
+    }
+
+    public final Auth auth;
+    public final Endpoints enabled_endpoints;
+
+    public Config(int port, Auth auth, Endpoints endpoints) {
+        this.port = port;
+        this.auth = auth;
+        this.enabled_endpoints = endpoints;
+    }
+
+    public static Config load(Path dir) throws IOException {
+        if (!Files.exists(dir)) Files.createDirectories(dir);
+
+        Path file = dir.resolve("hungerbridge.yml");
 
         if (!Files.exists(file)) {
-            String defaultYaml = """
+            String def = """
             port: 1913
-            token: CHANGE_ME
+            auth:
+              enabled: true
+              key: CHANGE_ME
+            enabled_endpoints:
+              ping: true
+              run: true
+              log: true
             """;
-            Files.writeString(file, defaultYaml);
-            return new Config(1913, "CHANGE_ME");
+            Files.writeString(file, def);
         }
 
         List<String> lines = Files.readAllLines(file);
 
         int port = 1913;
-        String token = "CHANGE_ME";
+        boolean authEnabled = true;
+        String authKey = "CHANGE_ME";
+        boolean epPing = true;
+        boolean epRun = true;
+        boolean epLog = true;
+
+        String section = "";
 
         for (String raw : lines) {
             String line = raw.trim();
             if (line.isEmpty() || line.startsWith("#")) continue;
 
-            int colon = line.indexOf(':');
+            if (line.endsWith(":")) {
+                section = line.substring(0, line.length() - 1).trim();
+                continue;
+            }
+
+            int colon = line.indexOf(":");
             if (colon < 0) continue;
 
             String key = line.substring(0, colon).trim();
-            String value = line.substring(colon + 1).trim();
+            String val = line.substring(colon + 1).trim();
 
-            if (key.equalsIgnoreCase("port")) {
-                try {
-                    port = Integer.parseInt(value);
-                } catch (NumberFormatException ignored) {
+            switch (section) {
+                case "" -> {
+                    if (key.equals("port")) port = Integer.parseInt(val);
                 }
-            } else if (key.equalsIgnoreCase("token")) {
-                token = value;
+                case "auth" -> {
+                    if (key.equals("enabled")) authEnabled = Boolean.parseBoolean(val);
+                    if (key.equals("key")) authKey = val;
+                }
+                case "enabled_endpoints" -> {
+                    if (key.equals("ping")) epPing = Boolean.parseBoolean(val);
+                    if (key.equals("run")) epRun = Boolean.parseBoolean(val);
+                    if (key.equals("log")) epLog = Boolean.parseBoolean(val);
+                }
             }
         }
 
-        return new Config(port, token);
+        return new Config(
+                port,
+                new Auth(authEnabled, authKey),
+                new Endpoints(epPing, epRun, epLog)
+        );
     }
 }

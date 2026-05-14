@@ -1,26 +1,18 @@
 package com.hungerbridge.common.endpoints;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+public class Health {
 
-import java.io.IOException;
+    private static final long START = System.currentTimeMillis();
 
-public class Health implements HttpHandler {
+    public static String handle() {
+        long uptime = System.currentTimeMillis() - START;
 
-    private final long startTime = System.currentTimeMillis();
-
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        long uptime = System.currentTimeMillis() - startTime;
-
-        String json = """
+        return """
         {
           "ok": true,
           "status": "ok",
           "uptime": %d
         }
         """.formatted(uptime);
-
-        RootHandler.sendJson(exchange, 200, json);
     }
 }
