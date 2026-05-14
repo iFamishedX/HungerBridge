@@ -2,38 +2,28 @@ package com.hungerbridge.common.util;
 
 import java.nio.file.Path;
 
-public class Platform {
+public final class Platform {
 
-    // Stored adapter instance
-    private static ServerAdapter adapter;
+    private Platform() {}
 
-    // Stored executor + logger
-    private static CommandExecutor executor;
-    private static Logger logger;
-
-    // -----------------------------
-    // Interfaces
-    // -----------------------------
-
-    public interface CommandExecutor {
-        String run(String command, boolean silent);
+    public interface ServerAdapter {
+        Path getConfigDir(Object server);
+        CommandExecutor getCommandExecutor(Object server);
+        Logger getLogger();
     }
 
+    @FunctionalInterface
+    public interface CommandExecutor {
+        // No output capture: just return "1" or "0" or empty.
+        String execute(String command);
+    }
+
+    @FunctionalInterface
     public interface Logger {
         void log(String level, String message);
     }
 
-    public interface ServerAdapter {
-        Path getConfigDir(Object server);
-
-        CommandExecutor getCommandExecutor(Object server);
-
-        Logger getLogger();
-    }
-
-    // -----------------------------
-    // Adapter registration
-    // -----------------------------
+    private static ServerAdapter adapter;
 
     public static void setAdapter(ServerAdapter a) {
         adapter = a;
@@ -41,26 +31,5 @@ public class Platform {
 
     public static ServerAdapter adapter() {
         return adapter;
-    }
-
-    // -----------------------------
-    // Initialization
-    // -----------------------------
-
-    public static void init(CommandExecutor exec, Logger log) {
-        executor = exec;
-        logger = log;
-    }
-
-    // -----------------------------
-    // Accessors
-    // -----------------------------
-
-    public static CommandExecutor executor() {
-        return executor;
-    }
-
-    public static Logger logger() {
-        return logger;
     }
 }

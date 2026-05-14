@@ -1,6 +1,6 @@
 name: HungerBridge
-main: com.hungerbridge.paper.HungerBridgePaper
-version: 1.0.0
-api-version: 1.20
-author: iFamishedX
-description: HTTP bridge for Minecraft servers
+main: com.hungerbridge.paper.PaperPlugin
+version: ${version}
+api-version: 1.21
+author: iFamished
+description: HTTP bridge for executing server commands and logging.

@@ -12,28 +12,19 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
     @Override
     public Path getConfigDir(Object server) {
         MinecraftServer s = (MinecraftServer) server;
-
-        // Mojang mappings 1.21.11: getServerDirectory() returns a Path
         return s.getServerDirectory().resolve("config/HungerBridge");
     }
 
     @Override
     public Platform.CommandExecutor getCommandExecutor(Object server) {
-        return (cmd, silent) -> {
+        return (cmd) -> {
             MinecraftServer s = (MinecraftServer) server;
-
             return s.submit(() -> {
                 CommandSourceStack source = s.createCommandSourceStack();
-
-                // Mojang 1.21.11: parse() returns ParseResults<CommandSourceStack>
                 ParseResults<CommandSourceStack> parsed =
                         s.getCommands().getDispatcher().parse(cmd, source);
-
-                // Mojang 1.21.11: performCommand() returns void
-                s.getCommands().performCommand(parsed, cmd);
-
-                // No return value → assume success
-                return "1";
+                boolean ok = s.getCommands().performCommand(parsed, cmd);
+                return ok ? "1" : "0";
             }).join();
         };
     }

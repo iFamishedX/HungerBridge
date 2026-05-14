@@ -16,30 +16,14 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
 
     @Override
     public Path getConfigDir(Object server) {
-        // Use the plugin's data folder as the config root
         return plugin.getDataFolder().toPath();
     }
 
     @Override
     public Platform.CommandExecutor getCommandExecutor(Object server) {
-        return (cmd, silent) -> {
-            final String[] result = { "0" };
-
-            try {
-                Bukkit.getScheduler().callSyncMethod(plugin, () -> {
-                    boolean ok = Bukkit.dispatchCommand(
-                            Bukkit.getConsoleSender(),
-                            cmd
-                    );
-                    result[0] = ok ? "1" : "0";
-                    return null;
-                }).get();
-            } catch (Exception e) {
-                Bukkit.getLogger().severe("HungerBridge command execution failed: " + e.getMessage());
-                result[0] = "0";
-            }
-
-            return result[0];
+        return (cmd) -> {
+            boolean ok = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            return ok ? "1" : "0";
         };
     }
 

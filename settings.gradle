@@ -6,5 +6,8 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'HungerBridge'
-include 'common', 'paper', 'fabric', 'universal'
+rootProject.name = "HungerBridge"
+
+include("common")
+include("fabric")
+include("paper")
