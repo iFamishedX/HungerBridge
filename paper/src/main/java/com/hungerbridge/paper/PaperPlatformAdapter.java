@@ -15,7 +15,7 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
     }
 
     @Override
-    public Path getConfigDirectory() {
+    public Path getConfigDir(Object server) {
         return plugin.getDataFolder().toPath();
     }
 
@@ -25,7 +25,6 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
             final String[] result = { "0" };
 
             try {
-                // Run command on main thread
                 Bukkit.getScheduler().callSyncMethod(plugin, () -> {
                     boolean ok = Bukkit.dispatchCommand(
                             Bukkit.getConsoleSender(),
@@ -33,8 +32,7 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
                     );
                     result[0] = ok ? "1" : "0";
                     return null;
-                }).get(); // wait for sync execution
-
+                }).get();
             } catch (Exception e) {
                 plugin.getLogger().severe("Command execution failed: " + e.getMessage());
                 result[0] = "0";
