@@ -39,20 +39,16 @@ public final class PaperCommandExecutor implements CommandExecutor {
 
             MinecraftServer nms = ((CraftServer) Bukkit.getServer()).getServer();
 
-            // Create a vanilla command source that captures output
-            CommandSourceStack source = new CommandSourceStack(
-                    (msg) -> lines.add(msg.getString()), // output capture
-                    nms.createCommandSourceStack().getPosition(),
-                    nms.createCommandSourceStack().getRotation(),
-                    nms.overworld(),
-                    4, // permission level
-                    "HungerBridge",
-                    Component.literal("HungerBridge"),
-                    nms,
-                    null
-            );
+            // Clone the real console CommandSourceStack
+            CommandSourceStack base = nms.createCommandSourceStack();
 
-            nms.getCommands().performPrefixedCommand(source, command);
+            // Wrap it to intercept output
+            CommandSourceStack wrapper = base.withCallback((msg, type) -> {
+                lines.add(msg.getString());
+            });
+
+            // Execute command using vanilla dispatcher
+            nms.getCommands().performPrefixedCommand(wrapper, command);
 
             future.complete(lines);
         });
