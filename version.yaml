@@ -1,5 +1,5 @@
 run: true
-version: "1.6"
+version: "1.7"
 mc_version: "1.21.11"
 description: |
   - Fix

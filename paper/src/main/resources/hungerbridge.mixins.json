@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "package": "com.hungerbridge.paper.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "DedicatedServerMixin",
+    "CommandsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

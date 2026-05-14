@@ -1,11 +1,8 @@
 {
-  "required": true,
+  "required": false,
   "package": "com.hungerbridge.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-    "DedicatedServerMixin",
-    "CommandsMixin"
-  ],
+  "mixins": [],
   "injectors": {
     "defaultRequire": 1
   }

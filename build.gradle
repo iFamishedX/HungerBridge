@@ -5,7 +5,7 @@ plugins {
 subprojects {
     apply plugin: 'java'
     group = 'com.hungerbridge'
-    version = '1.0.0'
+    version = System.getenv("VERSION") ?: "0.0.0"
 
     repositories {
         mavenCentral()
