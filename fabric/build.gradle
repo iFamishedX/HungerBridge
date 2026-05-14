@@ -4,11 +4,10 @@ plugins {
 
 dependencies {
     minecraft "com.mojang:minecraft:1.21.11"
-    mappings "net.fabricmc:intermediary:1.21.11"
-    modImplementation "net.fabricmc:fabric-loader:0.19.2"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.141.4+1.21.11"
+    mappings loom.officialMojangMappings()
 
-    // Shared code
+    modImplementation "net.fabricmc:fabric-loader:0.19.2"
+
     implementation project(":common")
 }
 

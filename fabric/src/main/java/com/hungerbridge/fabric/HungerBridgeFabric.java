@@ -5,7 +5,6 @@ import com.hungerbridge.common.CommandExecutor;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Logger;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.LoggerFactory;
 
@@ -22,17 +21,19 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
     public void onInitializeServer() {
         SLF4J_LOGGER.info("HungerBridge (Fabric) initializing.");
 
-        // Register lifecycle events
-        ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
-        ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
+        /*
+         * Fabric Loader gives us the server instance via a static accessor
+         * AFTER the server is constructed. This avoids Fabric API entirely.
+         */
+        net.fabricmc.loader.api.FabricLoader.getInstance().getGameInstance()
+                .execute(() -> startBridge((MinecraftServer) net.fabricmc.loader.api.FabricLoader.getInstance().getGameInstance()));
     }
 
-    private void onServerStarted(MinecraftServer server) {
+    private void startBridge(MinecraftServer server) {
         SLF4J_LOGGER.info("HungerBridge (Fabric) starting...");
 
         Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
 
-        // <server>/config/HungerBridge/config.yaml
         Path configDir = server.getFile("config").toPath().resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
@@ -45,13 +46,5 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         bridgeServer.start();
 
         SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.port);
-    }
-
-    private void onServerStopping(MinecraftServer server) {
-        if (bridgeServer != null) {
-            SLF4J_LOGGER.info("HungerBridge (Fabric) stopping...");
-            bridgeServer.stop();
-            bridgeServer = null;
-        }
     }
 }
