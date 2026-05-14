@@ -5,15 +5,12 @@ import com.hungerbridge.common.CommandExecutor;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Logger;
 import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
-/**
- * Fabric implementation of HungerBridge.
- * Runs on dedicated servers only.
- */
 public final class HungerBridgeFabric implements DedicatedServerModInitializer {
 
     private static final org.slf4j.Logger SLF4J_LOGGER =
@@ -23,19 +20,20 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
 
     @Override
     public void onInitializeServer() {
-        // This entrypoint is called when the dedicated server is starting.
         SLF4J_LOGGER.info("HungerBridge (Fabric) initializing.");
+
+        // Register lifecycle events
+        ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
+        ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
     }
 
-    /**
-     * Called from a server lifecycle hook to actually start the bridge.
-     * In a real setup, you would wire this via a server-start callback.
-     */
-    public void start(MinecraftServer server) {
+    private void onServerStarted(MinecraftServer server) {
+        SLF4J_LOGGER.info("HungerBridge (Fabric) starting...");
+
         Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
 
         // <server>/config/HungerBridge/config.yaml
-        Path configDir = server.getFile("config").resolve("HungerBridge");
+        Path configDir = server.getFile("config").toPath().resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
         CommandExecutor executor = cmd ->
@@ -46,14 +44,14 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
 
-        SLF4J_LOGGER.info("HungerBridge (Fabric) started.");
+        SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.port);
     }
 
-    public void stop() {
+    private void onServerStopping(MinecraftServer server) {
         if (bridgeServer != null) {
+            SLF4J_LOGGER.info("HungerBridge (Fabric) stopping...");
             bridgeServer.stop();
             bridgeServer = null;
         }
-        SLF4J_LOGGER.info("HungerBridge (Fabric) stopped.");
     }
 }

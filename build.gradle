@@ -1,25 +1,26 @@
-allprojects {
-    group = "com.hungerbridge"
-    version = "1.0.0"
+plugins {
+    id 'java'
+    id 'io.papermc.paperweight.userdev' version '1.7.1'
+}
 
-    repositories {
-        mavenCentral()
-        maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
-        maven { url = uri("https://maven.fabricmc.net/") }
+dependencies {
+    implementation project(":common")
+    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.21.1-R0.1-SNAPSHOT")
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
-subprojects {
-    apply plugin: "java"
+tasks.jar {
+    // include common classes inside the Paper plugin JAR
+    from(project(":common").sourceSets.main.output)
+}
 
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        options.encoding = "UTF-8"
-        options.release = 21
+processResources {
+    filesMatching("paper-plugin.yml") {
+        expand(project.properties)
     }
 }

@@ -67,7 +67,7 @@ public final class Config {
                 logger.log("INFO", "Config file not found, generating default config at " + configFile);
 
                 Map<String, Object> root = new HashMap<>();
-                root.put("port", 8080);
+                root.put("port", 1913);
 
                 Map<String, Object> auth = new HashMap<>();
                 auth.put("key", UUID.randomUUID().toString());
@@ -98,7 +98,7 @@ public final class Config {
                 root = (Map<String, Object>) loaded;
             }
 
-            int port = ((Number) root.getOrDefault("port", 8080)).intValue();
+            int port = ((Number) root.getOrDefault("port", 1913)).intValue();
 
             Map<String, Object> auth = (Map<String, Object>) root.getOrDefault("auth", new HashMap<>());
             String authKey = (String) auth.getOrDefault("key", "");
