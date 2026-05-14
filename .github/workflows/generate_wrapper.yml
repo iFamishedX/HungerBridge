@@ -23,13 +23,13 @@ jobs:
       - name: Install Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Generate Gradle Wrapper
-        run: gradle wrapper
+      - name: Generate Gradle Wrapper (8.10.2)
+        run: ./gradlew wrapper --gradle-version 8.10.2
 
       - name: Commit wrapper files
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Add Gradle wrapper"
+          commit_message: "Pin Gradle wrapper to 8.10.2"
           add_options: "-A"
           file_pattern: |
             gradlew
