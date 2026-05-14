@@ -58,7 +58,7 @@ public class RootHandler implements HttpHandler {
     private boolean checkAuth(HttpExchange exchange) {
         String auth = exchange.getRequestHeaders().getFirst("Authorization");
         if (auth == null) return false;
-        String expected = "Bearer " + config.token;
+        String expected = "Bearer " + config.auth.key;
         return auth.equals(expected);
     }
 
