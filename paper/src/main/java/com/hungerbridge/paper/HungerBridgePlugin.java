@@ -36,8 +36,10 @@ public final class HungerBridgePlugin extends JavaPlugin {
         Path configDir = getDataFolder().toPath();
         Config config = Config.load(configDir, logger);
 
-        CommandExecutor executor = cmd ->
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+        CommandExecutor executor = command ->
+                getServer().getScheduler().runTask(this, () ->
+                        getServer().dispatchCommand(getServer().getConsoleSender(), command)
+                );
 
         bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
