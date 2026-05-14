@@ -1,11 +1,10 @@
 package com.hungerbridge.paper;
 
 import com.hungerbridge.common.CommandExecutor;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -33,9 +32,30 @@ public final class PaperCommandExecutor implements CommandExecutor {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            CapturingSender sender = new CapturingSender();
-            plugin.getServer().dispatchCommand(sender, command);
-            future.complete(sender.lines);
+            List<String> lines = new ArrayList<>();
+
+            CommandSender console = plugin.getServer().getConsoleSender();
+
+            CommandSender proxy = (CommandSender) Proxy.newProxyInstance(
+                    console.getClass().getClassLoader(),
+                    new Class[]{CommandSender.class},
+                    (obj, method, args) -> {
+                        if (method.getName().equals("sendMessage")) {
+                            if (args != null) {
+                                for (Object arg : args) {
+                                    if (arg instanceof String s) {
+                                        lines.add(s);
+                                    }
+                                }
+                            }
+                            return null;
+                        }
+                        return method.invoke(console, args);
+                    }
+            );
+
+            plugin.getServer().dispatchCommand(proxy, command);
+            future.complete(lines);
         });
 
         try {
@@ -43,44 +63,5 @@ public final class PaperCommandExecutor implements CommandExecutor {
         } catch (Exception e) {
             return List.of();
         }
-    }
-
-    private static final class CapturingSender implements CommandSender {
-
-        private final List<String> lines = new ArrayList<>();
-
-        // ----------- MESSAGE CAPTURE -----------
-        @Override
-        public void sendMessage(String message) {
-            lines.add(message);
-        }
-
-        @Override
-        public void sendMessage(Component component) {
-            lines.add(component.toString());
-        }
-
-        // ----------- REQUIRED BY PAPER 1.21.x -----------
-        @Override
-        public String getName() {
-            return "HungerBridge";
-        }
-
-        @Override
-        public Component name() {
-            return Component.text("HungerBridge");
-        }
-
-        @Override
-        public Spigot spigot() {
-            return new Spigot();
-        }
-
-        // ----------- MINIMAL REQUIRED IMPLEMENTATIONS -----------
-        @Override public boolean isPermissionSet(String s) { return true; }
-        @Override public boolean hasPermission(String s) { return true; }
-        @Override public boolean isOp() { return true; }
-        @Override public void setOp(boolean b) {}
-        @Override public org.bukkit.Server getServer() { return Bukkit.getServer(); }
     }
 }
