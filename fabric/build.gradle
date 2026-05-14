@@ -12,9 +12,6 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:0.18.4"
 
-    // Correct, existing Fabric API version compatible with 1.21.11
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.100.8+1.21.4"
-
     implementation project(":common")
 }
 
