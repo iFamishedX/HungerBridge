@@ -4,8 +4,6 @@ import com.hungerbridge.common.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -32,30 +30,12 @@ public final class PaperCommandExecutor implements CommandExecutor {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            List<String> lines = new ArrayList<>();
-
             CommandSender console = plugin.getServer().getConsoleSender();
 
-            CommandSender proxy = (CommandSender) Proxy.newProxyInstance(
-                    console.getClass().getClassLoader(),
-                    new Class[]{CommandSender.class},
-                    (obj, method, args) -> {
-                        if (method.getName().equals("sendMessage")) {
-                            if (args != null) {
-                                for (Object arg : args) {
-                                    if (arg instanceof String s) {
-                                        lines.add(s);
-                                    }
-                                }
-                            }
-                            return null;
-                        }
-                        return method.invoke(console, args);
-                    }
-            );
+            // Paper API: safely capture output from ANY command
+            List<String> out = console.performCommandWithOutput(command);
 
-            plugin.getServer().dispatchCommand(proxy, command);
-            future.complete(lines);
+            future.complete(out);
         });
 
         try {
