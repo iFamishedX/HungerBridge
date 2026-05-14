@@ -48,9 +48,11 @@ public class Config {
         if (!Files.exists(file)) {
             String def = """
             port: 1913
+
             auth:
               enabled: true
               key: CHANGE_ME
+
             enabled_endpoints:
               ping: true
               run: true

@@ -3,7 +3,6 @@ package com.hungerbridge.paper;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Server;
 import com.hungerbridge.common.util.Platform;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Path;
@@ -15,30 +14,22 @@ public class HungerBridgePaper extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        Platform.setAdapter(new PaperPlatformAdapter());
+        // IMPORTANT: pass plugin instance into adapter
+        Platform.setAdapter(new PaperPlatformAdapter(this));
 
         try {
             Path cfgDir = getDataFolder().toPath().resolve("config");
             Config config = Config.load(cfgDir);
 
+            // Platform.init now uses adapter-provided executor + logger
             Platform.init(
-                    (cmd, silent) -> {
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                        return ""; // executor must return String
-                    },
-                    (level, msg) -> {
-                        switch (level.toLowerCase()) {
-                            case "error" -> getLogger().severe(msg);
-                            case "warn", "warning" -> getLogger().warning(msg);
-                            case "debug" -> getLogger().info("[DEBUG] " + msg);
-                            case "trace" -> getLogger().info("[TRACE] " + msg);
-                            default -> getLogger().info(msg);
-                        }
-                    }
+                    Platform.adapter().getCommandExecutor(null),
+                    Platform.adapter().getLogger()
             );
 
             httpServer = new Server(config);
             httpServer.start();
+
             getLogger().info("HungerBridge HTTP server started on port " + config.port);
 
         } catch (Exception e) {
