@@ -33,19 +33,15 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
         return (cmd) -> {
             final List<String> output = new ArrayList<>();
 
-            // Modern Paper CommandSender implementation
             CommandSender capturingSender = new CommandSender() {
 
+                // NEW REQUIRED METHOD IN PAPER 1.21.x
                 @Override
-                public void sendMessage(String message) {
-                    output.add(message);
+                public String name() {
+                    return "HungerBridge";
                 }
 
-                @Override
-                public void sendMessage(String[] messages) {
-                    for (String m : messages) output.add(m);
-                }
-
+                // Adventure messages
                 @Override
                 public void sendMessage(Component message) {
                     output.add(message.toString());
@@ -56,78 +52,39 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
                     for (Component m : messages) output.add(m.toString());
                 }
 
-                // REQUIRED ABSTRACT METHODS (Paper 1.21.x)
+                // Legacy messages
                 @Override
-                public String getName() {
-                    return "HungerBridge";
+                public void sendMessage(String message) {
+                    output.add(message);
                 }
 
                 @Override
-                public Server getServer() {
-                    return Bukkit.getServer();
+                public void sendMessage(String[] messages) {
+                    for (String m : messages) output.add(m);
                 }
 
-                @Override
-                public boolean isOp() {
-                    return true;
-                }
+                // Permissions
+                @Override public boolean isPermissionSet(String name) { return true; }
+                @Override public boolean isPermissionSet(Permission perm) { return true; }
+                @Override public boolean hasPermission(String name) { return true; }
+                @Override public boolean hasPermission(Permission perm) { return true; }
 
-                @Override
-                public void setOp(boolean value) {
-                    // ignore
-                }
+                @Override public PermissionAttachment addAttachment(Plugin plugin) { return null; }
+                @Override public PermissionAttachment addAttachment(Plugin plugin, int ticks) { return null; }
+                @Override public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) { return null; }
+                @Override public void removeAttachment(PermissionAttachment attachment) {}
+                @Override public void recalculatePermissions() {}
+                @Override public Set<PermissionAttachmentInfo> getEffectivePermissions() { return Set.of(); }
 
-                @Override
-                public boolean isPermissionSet(String name) {
-                    return true;
-                }
+                // Op status
+                @Override public boolean isOp() { return true; }
+                @Override public void setOp(boolean value) {}
 
-                @Override
-                public boolean isPermissionSet(Permission perm) {
-                    return true;
-                }
-
-                @Override
-                public boolean hasPermission(String name) {
-                    return true;
-                }
-
-                @Override
-                public boolean hasPermission(Permission perm) {
-                    return true;
-                }
-
-                @Override
-                public PermissionAttachment addAttachment(Plugin plugin) {
-                    return null;
-                }
-
-                @Override
-                public PermissionAttachment addAttachment(Plugin plugin, int ticks) {
-                    return null;
-                }
-
-                @Override
-                public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
-                    return null;
-                }
-
-                @Override
-                public void removeAttachment(PermissionAttachment attachment) {
-                }
-
-                @Override
-                public void recalculatePermissions() {
-                }
-
-                @Override
-                public Set<PermissionAttachmentInfo> getEffectivePermissions() {
-                    return Set.of();
-                }
+                // Server
+                @Override public Server getServer() { return Bukkit.getServer(); }
             };
 
             try {
-                // Ensure sync execution
                 Bukkit.getScheduler().callSyncMethod(plugin, () -> {
                     Bukkit.dispatchCommand(capturingSender, cmd);
                     return null;
