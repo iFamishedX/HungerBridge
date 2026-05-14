@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'io.papermc.paperweight.userdev' version '1.7.1'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 java {
@@ -11,6 +12,12 @@ java {
 
 dependencies {
     implementation project(":common")
-
     paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.21.1-R0.1-SNAPSHOT")
 }
+
+shadowJar {
+    archiveClassifier.set('')
+    relocate 'com.hungerbridge.common', 'com.hungerbridge.paper.shaded.common'
+}
+
+tasks.build.dependsOn shadowJar
