@@ -1,9 +1,3 @@
-rootProject.name = "HungerBridge"
-
-include("common")
-include("fabric")
-include("paper")
-
 pluginManagement {
     repositories {
         maven { url = "https://maven.fabricmc.net/" }
@@ -11,3 +5,9 @@ pluginManagement {
         mavenCentral()
     }
 }
+
+rootProject.name = "HungerBridge"
+
+include("common")
+include("fabric")
+include("paper")
