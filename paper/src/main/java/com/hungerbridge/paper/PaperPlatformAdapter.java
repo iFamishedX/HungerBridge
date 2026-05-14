@@ -16,6 +16,7 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
 
     @Override
     public Path getConfigDir(Object server) {
+        // Use the plugin's data folder as the config root
         return plugin.getDataFolder().toPath();
     }
 
@@ -34,7 +35,7 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
                     return null;
                 }).get();
             } catch (Exception e) {
-                plugin.getLogger().severe("Command execution failed: " + e.getMessage());
+                Bukkit.getLogger().severe("HungerBridge command execution failed: " + e.getMessage());
                 result[0] = "0";
             }
 
@@ -46,11 +47,11 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
     public Platform.Logger getLogger() {
         return (level, msg) -> {
             switch (level.toLowerCase()) {
-                case "error" -> plugin.getLogger().severe(msg);
-                case "warn", "warning" -> plugin.getLogger().warning(msg);
-                case "debug" -> plugin.getLogger().info("[DEBUG] " + msg);
-                case "trace" -> plugin.getLogger().info("[TRACE] " + msg);
-                default -> plugin.getLogger().info(msg);
+                case "error" -> Bukkit.getLogger().severe(msg);
+                case "warn", "warning" -> Bukkit.getLogger().warning(msg);
+                case "debug" -> Bukkit.getLogger().info("[DEBUG] " + msg);
+                case "trace" -> Bukkit.getLogger().info("[TRACE] " + msg);
+                default -> Bukkit.getLogger().info(msg);
             }
         };
     }
