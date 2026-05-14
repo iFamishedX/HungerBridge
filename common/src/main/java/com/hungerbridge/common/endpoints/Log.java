@@ -1,23 +1,63 @@
 package com.hungerbridge.common.endpoints;
 
-import com.google.gson.JsonObject;
 import com.hungerbridge.common.util.Platform;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
-public class Log {
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-    public static JsonObject handle(JsonObject body) {
-        String message = body.has("message") ? body.get("message").getAsString() : "";
-        String level = body.has("level") ? body.get("level").getAsString() : "info";
+public class Log implements HttpHandler {
 
-        JsonObject res = new JsonObject();
-        if (message.isEmpty()) {
-            res.addProperty("ok", false);
-            res.addProperty("error", "Missing message");
-            return res;
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+            String json = """
+            {
+              "ok": false,
+              "error": "method_not_allowed"
+            }
+            """;
+            RootHandler.sendJson(exchange, 405, json);
+            return;
+        }
+
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).trim();
+
+        String level = "info";
+        String message = "";
+
+        int lvlIdx = body.indexOf("\"level\"");
+        if (lvlIdx >= 0) {
+            int colon = body.indexOf(":", lvlIdx);
+            int q1 = body.indexOf("\"", colon + 1);
+            int q2 = body.indexOf("\"", q1 + 1);
+            level = body.substring(q1 + 1, q2);
+        }
+
+        int msgIdx = body.indexOf("\"message\"");
+        if (msgIdx >= 0) {
+            int colon = body.indexOf(":", msgIdx);
+            int q1 = body.indexOf("\"", colon + 1);
+            int q2 = body.indexOf("\"", q1 + 1);
+            message = body.substring(q1 + 1, q2);
         }
 
         Platform.logger().log(level, message);
-        res.addProperty("ok", true);
-        return res;
+
+        String json = """
+        {
+          "ok": true,
+          "level": "%s",
+          "message": "%s"
+        }
+        """.formatted(escape(level), escape(message));
+
+        RootHandler.sendJson(exchange, 200, json);
+    }
+
+    private static String escape(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

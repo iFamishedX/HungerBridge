@@ -1,30 +1,64 @@
 package com.hungerbridge.common.endpoints;
 
-import com.google.gson.JsonObject;
-import com.hungerbridge.common.util.Json;
 import com.hungerbridge.common.util.Platform;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
-public class Run {
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-    public static JsonObject handle(JsonObject body) {
-        String command = body.has("command") ? body.get("command").getAsString() : "";
-        boolean silent = body.has("silent") && body.get("silent").getAsBoolean();
+public class Run implements HttpHandler {
 
-        JsonObject res = new JsonObject();
-        if (command.isEmpty()) {
-            res.addProperty("ok", false);
-            res.addProperty("error", "Missing command");
-            return res;
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+            String json = """
+            {
+              "ok": false,
+              "error": "method_not_allowed"
+            }
+            """;
+            RootHandler.sendJson(exchange, 405, json);
+            return;
         }
 
-        try {
-            String output = Platform.executor().run(command, silent);
-            res.addProperty("ok", true);
-            res.addProperty("output", output == null ? "" : output);
-        } catch (Exception e) {
-            res.addProperty("ok", false);
-            res.addProperty("error", e.getMessage());
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).trim();
+
+        String command = "";
+        boolean silent = false;
+
+        int cmdIdx = body.indexOf("\"command\"");
+        if (cmdIdx >= 0) {
+            int colon = body.indexOf(":", cmdIdx);
+            int q1 = body.indexOf("\"", colon + 1);
+            int q2 = body.indexOf("\"", q1 + 1);
+            command = body.substring(q1 + 1, q2);
         }
-        return res;
+
+        int silentIdx = body.indexOf("\"silent\"");
+        if (silentIdx >= 0) {
+            int colon = body.indexOf(":", silentIdx);
+            int comma = body.indexOf(",", colon);
+            if (comma < 0) comma = body.indexOf("}", colon);
+            String val = body.substring(colon + 1, comma).trim();
+            silent = val.equalsIgnoreCase("true");
+        }
+
+        String result = Platform.executor().run(command, silent);
+
+        String json = """
+        {
+          "ok": true,
+          "command": "%s",
+          "result": "%s"
+        }
+        """.formatted(escape(command), escape(result));
+
+        RootHandler.sendJson(exchange, 200, json);
+    }
+
+    private static String escape(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
