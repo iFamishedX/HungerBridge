@@ -15,26 +15,20 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
     private static final org.slf4j.Logger SLF4J_LOGGER =
             LoggerFactory.getLogger("HungerBridge");
 
-    private BridgeServer bridgeServer;
+    private static BridgeServer bridgeServer;
 
     @Override
     public void onInitializeServer() {
         SLF4J_LOGGER.info("HungerBridge (Fabric) initializing.");
-
-        /*
-         * Fabric Loader gives us the server instance via a static accessor
-         * AFTER the server is constructed. This avoids Fabric API entirely.
-         */
-        net.fabricmc.loader.api.FabricLoader.getInstance().getGameInstance()
-                .execute(() -> startBridge((MinecraftServer) net.fabricmc.loader.api.FabricLoader.getInstance().getGameInstance()));
     }
 
-    private void startBridge(MinecraftServer server) {
+    // Called by mixin on first server tick
+    public static void onServerStarted(MinecraftServer server) {
         SLF4J_LOGGER.info("HungerBridge (Fabric) starting...");
 
         Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
 
-        Path configDir = server.getFile("config").toPath().resolve("HungerBridge");
+        Path configDir = server.getFile("config").resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
         CommandExecutor executor = cmd ->
@@ -45,6 +39,15 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
 
-        SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.port);
+        SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.getPort());
+    }
+
+    // Called by mixin on server shutdown
+    public static void onServerStopping() {
+        if (bridgeServer != null) {
+            SLF4J_LOGGER.info("HungerBridge (Fabric) stopping...");
+            bridgeServer.stop();
+            bridgeServer = null;
+        }
     }
 }
