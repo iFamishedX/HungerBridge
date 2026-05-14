@@ -3,6 +3,7 @@ package com.hungerbridge.paper;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Server;
 import com.hungerbridge.common.util.Platform;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Path;
@@ -14,7 +15,6 @@ public class HungerBridgePaper extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        // ⭐ REQUIRED: register adapter BEFORE calling common code
         Platform.setAdapter(new PaperPlatformAdapter());
 
         try {
@@ -24,7 +24,7 @@ public class HungerBridgePaper extends JavaPlugin {
             Platform.init(
                     (cmd, silent) -> {
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                        return ""; // ⭐ MUST return String
+                        return ""; // executor must return String
                     },
                     (level, msg) -> {
                         switch (level.toLowerCase()) {
