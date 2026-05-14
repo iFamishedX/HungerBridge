@@ -8,6 +8,17 @@ java {
     }
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs = ["src/main/java"]
+        }
+        resources {
+            srcDirs = ["src/main/resources"]
+        }
+    }
+}
+
 dependencies {
     implementation 'org.yaml:snakeyaml:2.3'
 }
