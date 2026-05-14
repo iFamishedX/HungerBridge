@@ -24,3 +24,7 @@ loom {
         }
     }
 }
+
+jar {
+    from(project(":common").sourceSets.main.output)
+}
