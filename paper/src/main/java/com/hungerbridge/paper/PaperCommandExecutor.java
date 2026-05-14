@@ -1,6 +1,7 @@
 package com.hungerbridge.paper;
 
 import com.hungerbridge.common.CommandExecutor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -48,30 +49,34 @@ public final class PaperCommandExecutor implements CommandExecutor {
 
         private final List<String> lines = new ArrayList<>();
 
+        // ----------- MESSAGE CAPTURE -----------
         @Override
         public void sendMessage(String message) {
             lines.add(message);
         }
 
-        // Adventure API
         @Override
-        public void sendMessage(net.kyori.adventure.text.Component component) {
+        public void sendMessage(Component component) {
             lines.add(component.toString());
         }
 
-        // REQUIRED for 1.21.x
+        // ----------- REQUIRED BY PAPER 1.21.x -----------
         @Override
-        public net.kyori.adventure.text.Component name() {
-            return net.kyori.adventure.text.Component.text("HungerBridge");
+        public String getName() {
+            return "HungerBridge";
         }
 
-        // REQUIRED — but we can return a dummy Spigot instance
+        @Override
+        public Component name() {
+            return Component.text("HungerBridge");
+        }
+
         @Override
         public Spigot spigot() {
             return new Spigot();
         }
 
-        // Minimal required implementations
+        // ----------- MINIMAL REQUIRED IMPLEMENTATIONS -----------
         @Override public boolean isPermissionSet(String s) { return true; }
         @Override public boolean hasPermission(String s) { return true; }
         @Override public boolean isOp() { return true; }
