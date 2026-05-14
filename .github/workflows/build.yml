@@ -1,12 +1,13 @@
-name: Build
+name: Generate Wrapper
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  gen:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,20 +20,25 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Grant execute permission for Gradle
-        run: chmod +x ./gradlew
+      - name: Install Gradle (system)
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon
+      - name: Create empty settings-wrapper.gradle
+        run: echo "" > settings-wrapper.gradle
 
-      - name: Upload Paper jar
-        uses: actions/upload-artifact@v4
+      - name: Generate Gradle Wrapper (8.10.2)
+        run: gradle wrapper --gradle-version 8.10.2 -c settings-wrapper.gradle
+
+      - name: Make wrapper executable
+        run: chmod +x gradlew
+
+      - name: Commit wrapper files
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          name: hungerbridge-paper
-          path: paper/build/libs/*.jar
-
-      - name: Upload Fabric jar
-        uses: actions/upload-artifact@v4
-        with:
-          name: hungerbridge-fabric
-          path: fabric/build/libs/*.jar
+          commit_message: "Add Gradle wrapper (8.10.2)"
+          add_options: "-A"
+          file_pattern: |
+            gradlew
+            gradlew.bat
+            gradle/wrapper/gradle-wrapper.jar
+            gradle/wrapper/gradle-wrapper.properties

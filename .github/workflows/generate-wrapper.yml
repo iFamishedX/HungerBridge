@@ -23,8 +23,11 @@ jobs:
       - name: Install Gradle (system)
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Create empty settings-wrapper.gradle
+        run: echo "" > settings-wrapper.gradle
+
       - name: Generate Gradle Wrapper (8.10.2)
-        run: gradle wrapper --gradle-version 8.10.2 --distribution-type bin
+        run: gradle wrapper --gradle-version 8.10.2 -c settings-wrapper.gradle
 
       - name: Make wrapper executable
         run: chmod +x gradlew
