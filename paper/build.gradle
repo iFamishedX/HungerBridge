@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'com.hungerbridge'
@@ -20,7 +19,7 @@ repositories {
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
 
-    // IMPORTANT: include common module
+    // pull in common module classes
     implementation project(':common')
 }
 
@@ -28,15 +27,14 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
-shadowJar {
+jar {
+    // final plugin name
+    archiveBaseName.set('HungerBridge')
+    archiveVersion.set(project.version.toString())
     archiveClassifier.set('')
 
-    // Relocate common module to avoid classloader collisions
-    relocate 'com.hungerbridge.common', 'com.hungerbridge.shaded.common'
+    // include common module classes directly into the plugin jar
+    from(project(':common').sourceSets.main.get().output)
 }
 
-jar {
-    enabled = false
-}
-
-build.dependsOn shadowJar
+build.dependsOn jar
