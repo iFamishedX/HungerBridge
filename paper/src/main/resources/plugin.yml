@@ -1,6 +1,0 @@
-name: HungerBridge
-main: com.hungerbridge.paper.PaperPlugin
-version: ${version}
-api-version: 1.21
-author: iFamished
-description: HTTP bridge for executing server commands and logging.

@@ -1,0 +1,6 @@
+name: HungerBridge
+main: com.hungerbridge.HungerBridge
+version: 1.0.0
+api-version: 1.21
+author: iFamished
+description: Simple logging plugin foundation.
