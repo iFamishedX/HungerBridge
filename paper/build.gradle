@@ -19,7 +19,7 @@ repositories {
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
 
-    // pull in common module classes
+    // include common module classes
     implementation project(':common')
 }
 
@@ -28,13 +28,12 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 jar {
-    // final plugin name
     archiveBaseName.set('HungerBridge')
     archiveVersion.set(project.version.toString())
     archiveClassifier.set('')
 
-    // include common module classes directly into the plugin jar
-    from(project(':common').sourceSets.main.get().output)
+    // Gradle 9: sourceSets.main.output is NOT a Provider anymore
+    from(project(':common').sourceSets.main.output)
 }
 
 build.dependsOn jar
