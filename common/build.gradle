@@ -21,5 +21,4 @@ sourceSets {
 
 dependencies {
     implementation 'org.yaml:snakeyaml:2.3'
-    implementation project(":common")
 }
