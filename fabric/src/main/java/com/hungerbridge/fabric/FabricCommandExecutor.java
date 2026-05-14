@@ -1,8 +1,9 @@
 package com.hungerbridge.fabric;
 
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.commands.CommandResultCallback;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class FabricCommandExecutor {
 
         CommandResultCallback callback = new CommandResultCallback() {
             @Override
-            public void sendMessage(CommandSourceStack source, net.minecraft.network.chat.Component message) {
+            public void sendMessage(CommandSourceStack source, Component message) {
                 output.add(message.getString());
             }
         };

@@ -1,8 +1,8 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.Config;
-import com.hungerbridge.common.Platform;
 import com.hungerbridge.common.Server;
+import com.hungerbridge.common.util.Platform;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
@@ -22,31 +22,27 @@ public class HungerBridgeFabric implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("HungerBridge Fabric mod initialized");
 
-        // Run AFTER the server has fully started
+        // Register adapter BEFORE server start
+        Platform.setAdapter(new FabricPlatformAdapter());
+
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
     }
 
     private void onServerStarted(MinecraftServer server) {
         try {
-            // /config/HungerBridge/
             Path cfgDir = server.getRunDirectory()
                     .toPath()
                     .resolve("config")
                     .resolve("HungerBridge");
 
-            // Load config (creates config.yaml if missing)
             Config config = Config.load(cfgDir);
 
-            // Fabric command executor wrapper
-            FabricCommandExecutor exec = new FabricCommandExecutor(server);
-
-            // Initialize platform bridge
+            // Initialize Platform with adapter-provided executor + logger
             Platform.init(
-                    (cmd, silent) -> exec.run(cmd)
-                    (level, msg) -> LOGGER.info(msg)
+                    Platform.adapter().getCommandExecutor(server),
+                    Platform.adapter().getLogger()
             );
 
-            // Start HTTP server
             bridgeServer = new Server(config);
             bridgeServer.start();
 

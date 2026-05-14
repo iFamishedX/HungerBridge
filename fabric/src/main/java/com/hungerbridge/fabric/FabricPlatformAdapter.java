@@ -2,38 +2,52 @@ package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.util.Platform;
 import com.mojang.brigadier.ParseResults;
+import net.minecraft.commands.CommandResultCallback;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FabricPlatformAdapter implements Platform.ServerAdapter {
 
     @Override
     public Path getConfigDir(Object server) {
         MinecraftServer s = (MinecraftServer) server;
-
-        // Mojang mappings 1.21.11: getServerDirectory() returns a Path
         return s.getServerDirectory().resolve("config/HungerBridge");
     }
 
     @Override
     public Platform.CommandExecutor getCommandExecutor(Object server) {
-        return (cmd, silent) -> {
+        return (cmd) -> {
             MinecraftServer s = (MinecraftServer) server;
 
             return s.submit(() -> {
-                CommandSourceStack source = s.createCommandSourceStack();
+                List<String> output = new ArrayList<>();
 
-                // Mojang 1.21.11: parse() returns ParseResults<CommandSourceStack>
+                // Capture output from the command source
+                CommandResultCallback callback = new CommandResultCallback() {
+                    @Override
+                    public void sendMessage(CommandSourceStack source, Component message) {
+                        output.add(message.getString()); // EXACT output, no prefix
+                    }
+                };
+
+                CommandSourceStack source = s.createCommandSourceStack()
+                        .withCallback(callback);
+
                 ParseResults<CommandSourceStack> parsed =
                         s.getCommands().getDispatcher().parse(cmd, source);
 
-                // Mojang 1.21.11: performCommand() returns void
                 s.getCommands().performCommand(parsed, cmd);
 
-                // No return value → assume success
-                return "1";
+                if (output.isEmpty()) {
+                    return ""; // No prefix, no filler
+                }
+
+                return String.join("\n", output);
             }).join();
         };
     }

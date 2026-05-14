@@ -14,14 +14,14 @@ public class HungerBridgePaper extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        // IMPORTANT: pass plugin instance into adapter
+        // Register Paper adapter
         Platform.setAdapter(new PaperPlatformAdapter(this));
 
         try {
             Path cfgDir = getDataFolder().toPath().resolve("config");
             Config config = Config.load(cfgDir);
 
-            // Platform.init now uses adapter-provided executor + logger
+            // Initialize Platform with adapter-provided executor + logger
             Platform.init(
                     Platform.adapter().getCommandExecutor(null),
                     Platform.adapter().getLogger()
