@@ -123,8 +123,6 @@ public final class BridgeServer {
                 error(ex, 400, "bad_request", "empty command");
                 return;
             }
-
-            logger.log("INFO", "Executing command via /run: " + cmd);
             executor.execute(cmd);
 
             writeJson(ex, 200, Json.obj("ok", true));
@@ -153,7 +151,8 @@ public final class BridgeServer {
                 return;
             }
 
-            logger.log("INFO", "[HungerBridge] " + msg);
+            logger.log("INFO", msg);
+         // logger.log("INFO", "[HungerBridge] " + msg);   OLD VERSION
             writeJson(ex, 200, Json.obj("ok", true));
         }
     }
@@ -184,8 +183,6 @@ public final class BridgeServer {
 
             String cmd = json.get("command").getAsString();
             boolean silent = json.has("silent") && json.get("silent").getAsBoolean();
-
-            logger.log("INFO", "Executing command via /v1/run: " + cmd);
 
             List<String> out = executor.executeWithOutput(cmd);
 

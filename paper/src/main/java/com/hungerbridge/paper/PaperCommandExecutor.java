@@ -57,16 +57,6 @@ public final class PaperCommandExecutor implements CommandExecutor {
                     String msg = event.getMessage().getFormattedMessage();
                     if (msg == null) return;
 
-                    // Remove HungerBridge prefix
-                    if (msg.startsWith("[HungerBridge] ")) {
-                        msg = msg.substring("[HungerBridge] ".length());
-                    }
-
-                    // Hide HungerBridge's own "executing command" logs
-                    if (msg.startsWith("Executing command via /v1/run:")) {
-                        return;
-                    }
-
                     String trimmed = msg.trim();
                     if (!trimmed.isEmpty()) {
                         lines.add(trimmed);

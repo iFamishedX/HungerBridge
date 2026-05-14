@@ -57,7 +57,7 @@ public final class Config {
             Path configFile = configDir.resolve("config.yaml");
 
             if (!Files.exists(configFile)) {
-                logger.log("INFO", "Config file not found, generating default config at " + configFile);
+                logger.log("WARN", "Config file not found, generating default config at " + configFile);
 
                 Map<String, Object> root = new HashMap<>();
                 root.put("port", 1913);
