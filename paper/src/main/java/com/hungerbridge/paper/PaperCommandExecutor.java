@@ -40,7 +40,8 @@ public final class PaperCommandExecutor implements CommandExecutor {
 
             List<String> lines = new ArrayList<>();
 
-            Logger root = (Logger) LogManager.getRootLogger();
+            // THIS is the correct logger for Purpur/Paper console output
+            Logger mcLogger = (Logger) LogManager.getLogger("Minecraft");
 
             Appender appender = new AbstractAppender(
                     "HungerBridgeCapture",
@@ -56,14 +57,14 @@ public final class PaperCommandExecutor implements CommandExecutor {
                     String msg = event.getMessage().getFormattedMessage();
                     if (msg == null) return;
 
-                    // Remove HungerBridge prefix ONLY if present
+                    // Remove HungerBridge prefix
                     if (msg.startsWith("[HungerBridge] ")) {
                         msg = msg.substring("[HungerBridge] ".length());
                     }
 
-                    // Hide HungerBridge internal logs from console
+                    // Hide HungerBridge's own "executing command" logs
                     if (msg.startsWith("Executing command via /v1/run:")) {
-                        return; // do not print to console
+                        return;
                     }
 
                     String trimmed = msg.trim();
@@ -74,7 +75,7 @@ public final class PaperCommandExecutor implements CommandExecutor {
             };
 
             appender.start();
-            root.addAppender(appender);
+            mcLogger.addAppender(appender);
 
             try {
                 plugin.getServer().dispatchCommand(
@@ -82,7 +83,7 @@ public final class PaperCommandExecutor implements CommandExecutor {
                         command
                 );
             } finally {
-                root.removeAppender(appender);
+                mcLogger.removeAppender(appender);
                 appender.stop();
             }
 
