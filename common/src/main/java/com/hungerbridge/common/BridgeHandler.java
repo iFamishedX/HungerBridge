@@ -21,7 +21,10 @@ public class BridgeHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         if (!Auth.check(config, exchange)) {
             send(exchange, 401, """
-            { "ok": false, "error": "unauthorized" }
+            {
+              "ok": false,
+              "error": "unauthorized"
+            }
             """);
             return;
         }
@@ -29,17 +32,33 @@ public class BridgeHandler implements HttpHandler {
         String path = exchange.getRequestURI().getPath();
 
         switch (path) {
+
             case "/ping" -> {
                 if (!config.enabled_endpoints.ping) {
-                    send(exchange, 403, """{ "ok": false, "error": "disabled" }""");
+                    send(exchange, 403, """
+                    {
+                      "ok": false,
+                      "error": "disabled"
+                    }
+                    """);
                     return;
                 }
-                send(exchange, 200, """{ "ok": true, "pong": true }""");
+                send(exchange, 200, """
+                {
+                  "ok": true,
+                  "pong": true
+                }
+                """);
             }
 
             case "/run" -> {
                 if (!config.enabled_endpoints.run) {
-                    send(exchange, 403, """{ "ok": false, "error": "disabled" }""");
+                    send(exchange, 403, """
+                    {
+                      "ok": false,
+                      "error": "disabled"
+                    }
+                    """);
                     return;
                 }
                 send(exchange, 200, Run.handle(exchange));
@@ -47,7 +66,12 @@ public class BridgeHandler implements HttpHandler {
 
             case "/log" -> {
                 if (!config.enabled_endpoints.log) {
-                    send(exchange, 403, """{ "ok": false, "error": "disabled" }""");
+                    send(exchange, 403, """
+                    {
+                      "ok": false,
+                      "error": "disabled"
+                    }
+                    """);
                     return;
                 }
                 send(exchange, 200, Log.handle(exchange));
@@ -58,7 +82,12 @@ public class BridgeHandler implements HttpHandler {
             }
 
             default -> {
-                send(exchange, 404, """{ "ok": false, "error": "not_found" }""");
+                send(exchange, 404, """
+                {
+                  "ok": false,
+                  "error": "not_found"
+                }
+                """);
             }
         }
     }
