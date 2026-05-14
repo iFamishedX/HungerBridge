@@ -1,9 +1,14 @@
 package com.hungerbridge.paper;
 
 import com.hungerbridge.common.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -30,12 +35,26 @@ public final class PaperCommandExecutor implements CommandExecutor {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            CommandSender console = plugin.getServer().getConsoleSender();
+            List<String> lines = new ArrayList<>();
 
-            // Paper API: safely capture output from ANY command
-            List<String> out = console.performCommandWithOutput(command);
+            MinecraftServer nms = ((CraftServer) Bukkit.getServer()).getServer();
 
-            future.complete(out);
+            // Create a vanilla command source that captures output
+            CommandSourceStack source = new CommandSourceStack(
+                    (msg) -> lines.add(msg.getString()), // output capture
+                    nms.createCommandSourceStack().getPosition(),
+                    nms.createCommandSourceStack().getRotation(),
+                    nms.overworld(),
+                    4, // permission level
+                    "HungerBridge",
+                    Component.literal("HungerBridge"),
+                    nms,
+                    null
+            );
+
+            nms.getCommands().performPrefixedCommand(source, command);
+
+            future.complete(lines);
         });
 
         try {
