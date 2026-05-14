@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'fabric-loom' version '1.6.12'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:1.21.1"
+    mappings loom.officialMojangMappings()
+
+    modImplementation "net.fabricmc:fabric-loader:0.18.4"
+    implementation project(':common')
+}
+
+sourceCompatibility = '17'
+targetCompatibility = '17'

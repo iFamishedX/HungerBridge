@@ -30,12 +30,14 @@ jobs:
 
       - name: Parse version.yaml
         run: |
-          echo "RUN=$(yq '.run' version.yaml)" >> $GITHUB_ENV
-          echo "VERSION=$(yq '.version' version.yaml)" >> $GITHUB_ENV
-          echo "MC_VERSION=$(yq '.mc_version' version.yaml)" >> $GITHUB_ENV
-          echo "DESC<<EOF" >> $GITHUB_ENV
-          yq '.description' version.yaml >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          # Use yq eval -r to get raw strings without quotes/newlines
+          echo "RUN=$(yq eval -r '.run' version.yaml)" >> $GITHUB_ENV
+          echo "VERSION=$(yq eval -r '.version' version.yaml)" >> $GITHUB_ENV
+          echo "MC_VERSION=$(yq eval -r '.mc_version' version.yaml)" >> $GITHUB_ENV
+          # Preserve multiline description into DESC env var
+          echo "DESC<<'DESC_EOF'" >> $GITHUB_ENV
+          yq eval -r '.description' version.yaml >> $GITHUB_ENV
+          echo "DESC_EOF" >> $GITHUB_ENV
 
       - name: Stop if run=false
         if: ${{ env.RUN == 'false' }}
@@ -48,16 +50,19 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Set up Gradle
+      - name: Ensure Gradle wrapper exists
         if: ${{ env.RUN == 'true' }}
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-read-only: false
+        run: |
+          if [ ! -f ./gradlew ]; then
+            echo "Gradle wrapper not found. Generate locally and commit, or run the generate-wrapper workflow."
+            exit 1
+          fi
+          chmod +x ./gradlew
 
       - name: Build HungerBridge
         if: ${{ env.RUN == 'true' }}
         run: |
-          gradle clean build --no-daemon
+          ./gradlew clean build --no-daemon
 
       - name: Prepare artifacts
         if: ${{ env.RUN == 'true' }}
@@ -67,8 +72,20 @@ jobs:
           PAPER_JAR="HungerBridge-paper-${VERSION}+${MC_VERSION}.jar"
           FABRIC_JAR="HungerBridge-fabric-${VERSION}+${MC_VERSION}.jar"
 
-          cp paper/build/libs/*.jar release/${PAPER_JAR}
-          cp fabric/build/libs/*.jar release/${FABRIC_JAR}
+          # Fail early if expected jars are missing
+          if compgen -G "paper/build/libs/*.jar" > /dev/null; then
+            cp paper/build/libs/*.jar "release/${PAPER_JAR}"
+          else
+            echo "Paper jar not found in paper/build/libs" >&2
+            exit 1
+          fi
+
+          if compgen -G "fabric/build/libs/*.jar" > /dev/null; then
+            cp fabric/build/libs/*.jar "release/${FABRIC_JAR}"
+          else
+            echo "Fabric jar not found in fabric/build/libs" >&2
+            exit 1
+          fi
 
           echo "PAPER_JAR=${PAPER_JAR}" >> $GITHUB_ENV
           echo "FABRIC_JAR=${FABRIC_JAR}" >> $GITHUB_ENV

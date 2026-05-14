@@ -1,0 +1,5 @@
+// Temporary settings file used by the wrapper-generation workflow
+// Excludes fabric so the wrapper can be generated without Loom loading.
+rootProject.name = 'HungerBridge'
+include 'common', 'paper'
+// fabric intentionally excluded for wrapper generation

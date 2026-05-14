@@ -14,17 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 17
 
-      - name: Install Gradle
+      - name: Install Gradle (system)
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Generate Gradle Wrapper (8.10.2)
-        run: gradle wrapper --gradle-version 8.10.2
+      - name: Generate Gradle Wrapper (8.10.2) without Fabric
+        run: gradle wrapper --gradle-version 8.10.2 -c settings-wrapper.gradle
 
       - name: Make wrapper executable
         run: chmod +x gradlew
