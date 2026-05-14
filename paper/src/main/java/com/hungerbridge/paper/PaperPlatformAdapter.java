@@ -35,24 +35,13 @@ public class PaperPlatformAdapter implements Platform.ServerAdapter {
 
             CommandSender capturingSender = new CommandSender() {
 
-                // NEW REQUIRED METHOD IN PAPER 1.21.x
+                // Paper's CommandSender.name() -> Component
                 @Override
-                public String name() {
-                    return "HungerBridge";
+                public Component name() {
+                    return Component.text("HungerBridge");
                 }
 
-                // Adventure messages
-                @Override
-                public void sendMessage(Component message) {
-                    output.add(message.toString());
-                }
-
-                @Override
-                public void sendMessage(Component... messages) {
-                    for (Component m : messages) output.add(m.toString());
-                }
-
-                // Legacy messages
+                // String-based messages (these definitely exist)
                 @Override
                 public void sendMessage(String message) {
                     output.add(message);
