@@ -9,7 +9,8 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
 
     @Override
     public Path getConfigDir(Object server) {
-        return ((MinecraftServer) server).getRunDirectory().toPath().resolve("config/HungerBridge");
+        MinecraftServer s = (MinecraftServer) server;
+        return s.getSavePath().resolve("config/HungerBridge");
     }
 
     @Override
@@ -19,8 +20,8 @@ public class FabricPlatformAdapter implements Platform.ServerAdapter {
 
             // Run command on main thread
             return s.submit(() -> {
-                boolean ok = s.getCommandManager().executeWithPrefix(
-                        s.getCommandSource(),
+                boolean ok = s.getCommands().performPrefixedCommand(
+                        s.createCommandSourceStack(),
                         cmd
                 );
                 return ok ? "1" : "0";

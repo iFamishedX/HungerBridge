@@ -14,7 +14,7 @@ public class DedicatedServerMixin {
 
     private static final HungerBridgeCommon BRIDGE = new HungerBridgeCommon();
 
-    @Inject(method = "setupServer", at = @At("RETURN"))
+    @Inject(method = "initServer", at = @At("RETURN"))
     private void hungerbridge$start(CallbackInfoReturnable<Boolean> cir) {
         DedicatedServer server = (DedicatedServer) (Object) this;
 
