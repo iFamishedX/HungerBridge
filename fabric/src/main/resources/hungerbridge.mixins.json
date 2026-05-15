@@ -5,7 +5,8 @@
   "mixins": [
     "MinecraftServerMixin",
     "CommandSourceStackMixin",
-    "PlayerListMixin"
+    "PlayerListMixin",
+    "DedicatedServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
