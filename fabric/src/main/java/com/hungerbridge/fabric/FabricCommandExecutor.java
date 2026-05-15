@@ -1,10 +1,11 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.CommandExecutor;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -52,7 +53,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
                     Vec3.ZERO,
                     Vec2.ZERO,
                     server.overworld(),
-                    net.minecraft.commands.CommandSourceStack.PermissionSet.ofLevels(4),
+                    4, // permission level
                     "HungerBridge",
                     Component.literal("HungerBridge"),
                     server,
