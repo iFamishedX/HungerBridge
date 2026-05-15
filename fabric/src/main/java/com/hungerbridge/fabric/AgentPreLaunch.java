@@ -11,7 +11,6 @@ public final class AgentPreLaunch implements PreLaunchEntrypoint {
     @Override
     public void onPreLaunch() {
         try {
-            // Locate this mod's JAR
             Path jarPath = FabricLoader.getInstance()
                     .getModContainer("hungerbridge")
                     .orElseThrow()
@@ -21,8 +20,9 @@ public final class AgentPreLaunch implements PreLaunchEntrypoint {
 
             System.out.println("[HungerBridgeAgent] Attaching Java agent from " + jarPath);
 
-            // Attach the embedded agent
-            FabricLauncherBase.getLauncher().addJavaAgent(jarPath);
+            // Correct method for your Fabric Loader version
+            FabricLauncherBase.getLauncher().addAgent(jarPath);
+
         } catch (Throwable t) {
             System.err.println("[HungerBridgeAgent] Failed to attach Java agent");
             t.printStackTrace();
