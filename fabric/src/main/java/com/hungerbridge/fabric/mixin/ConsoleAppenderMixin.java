@@ -1,24 +1,26 @@
 package com.hungerbridge.fabric.mixin;
 
 import com.hungerbridge.fabric.OutputCapture;
-import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Logger.class)
-public class LoggerMixin {
+@Mixin(ConsoleAppender.class)
+public class ConsoleAppenderMixin {
 
     @Inject(
-            method = "info(Ljava/lang/String;)V",
+            method = "append",
             at = @At("HEAD"),
             cancellable = true,
             remap = false
     )
-    private void hungerbridge_captureInfo(String message, CallbackInfo ci) {
+    private void hungerbridge_captureConsole(LogEvent event, CallbackInfo ci) {
         if (OutputCapture.isActive()) {
-            OutputCapture.add(message);
+            String msg = event.getMessage().getFormattedMessage();
+            OutputCapture.add(msg);
             ci.cancel(); // suppress console output
         }
     }
