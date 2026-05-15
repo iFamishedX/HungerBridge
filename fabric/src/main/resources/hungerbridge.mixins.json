@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "DedicatedServerProbeMixin",
-    "DedicatedServerMethodDumpMixin"
+    "DedicatedServerMethodDumpMixin",
+    "MinecraftServerMethodDumpMixin"
   ],
   "injectors": {
     "defaultRequire": 1
