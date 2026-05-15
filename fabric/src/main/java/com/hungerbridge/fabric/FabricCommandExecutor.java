@@ -53,7 +53,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
                     Vec3.ZERO,
                     Vec2.ZERO,
                     server.overworld(),
-                    4, // permission level
+                    4,
                     "HungerBridge",
                     Component.literal("HungerBridge"),
                     server,

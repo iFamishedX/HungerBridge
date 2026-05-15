@@ -33,7 +33,7 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
 
         config.setPlatform("fabric");
         config.setMinecraftVersion(
-            net.minecraft.SharedConstants.getCurrentVersion().getId()
+            net.minecraft.SharedConstants.getGameVersion().getName()
         );
 
         CommandExecutor executor = new FabricCommandExecutor(server);
