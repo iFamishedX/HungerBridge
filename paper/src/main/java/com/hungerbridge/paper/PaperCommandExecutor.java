@@ -34,7 +34,7 @@ public final class PaperCommandExecutor implements CommandExecutor {
     }
 
     @Override
-    public List<String> executeWithOutput(String command) {
+    public List<String> executeWithOutput(String command, boolean showConsole) {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         plugin.getServer().getScheduler().runTask(plugin, () -> {
@@ -46,11 +46,6 @@ public final class PaperCommandExecutor implements CommandExecutor {
 
             // Save all existing appenders (console, file, etc.)
             Map<String, Appender> originalAppenders = root.getAppenders();
-
-            // Remove all appenders so NOTHING prints to console
-            for (Appender app : originalAppenders.values()) {
-                root.removeAppender(app);
-            }
 
             // Our capture appender
             Appender capture = new AbstractAppender(
@@ -75,10 +70,18 @@ public final class PaperCommandExecutor implements CommandExecutor {
             };
 
             capture.start();
+
+            if (!showConsole) {
+                // Remove all appenders so NOTHING prints to console
+                for (Appender app : originalAppenders.values()) {
+                    root.removeAppender(app);
+                }
+            }
+
             root.addAppender(capture);
 
             try {
-                // Execute the command silently
+                // Execute the command
                 plugin.getServer().dispatchCommand(
                         plugin.getServer().getConsoleSender(),
                         command
@@ -88,9 +91,11 @@ public final class PaperCommandExecutor implements CommandExecutor {
                 root.removeAppender(capture);
                 capture.stop();
 
-                // Restore original appenders
-                for (Appender app : originalAppenders.values()) {
-                    root.addAppender(app);
+                if (!showConsole) {
+                    // Restore original appenders only if we removed them
+                    for (Appender app : originalAppenders.values()) {
+                        root.addAppender(app);
+                    }
                 }
             }
 

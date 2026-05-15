@@ -152,7 +152,6 @@ public final class BridgeServer {
             }
 
             logger.log("INFO", msg);
-         // logger.log("INFO", "[HungerBridge] " + msg);   OLD VERSION
             writeJson(ex, 200, Json.obj("ok", true));
         }
     }
@@ -183,8 +182,9 @@ public final class BridgeServer {
 
             String cmd = json.get("command").getAsString();
             boolean silent = json.has("silent") && json.get("silent").getAsBoolean();
+            boolean showConsole = json.has("show_console") && json.get("show_console").getAsBoolean();
 
-            List<String> out = executor.executeWithOutput(cmd);
+            List<String> out = executor.executeWithOutput(cmd, showConsole);
 
             JsonObject resp = Json.obj("ok", true);
             if (!silent && out != null) {

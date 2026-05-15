@@ -30,13 +30,13 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public void execute(String command) {
-        server.execute(() -> {
-            server.getCommands().performPrefixedCommand(console(), command);
-        });
+        server.execute(() ->
+                server.getCommands().performPrefixedCommand(console(), command)
+        );
     }
 
     @Override
-    public List<String> executeWithOutput(String command) {
+    public List<String> executeWithOutput(String command, boolean showConsole) {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         server.execute(() -> {
@@ -44,10 +44,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
             Logger root = (Logger) LogManager.getRootLogger();
             Map<String, Appender> original = root.getAppenders();
-
-            for (Appender a : original.values()) {
-                root.removeAppender(a);
-            }
 
             Appender capture = new AbstractAppender(
                     "HungerBridgeFabricCapture",
@@ -69,6 +65,14 @@ public final class FabricCommandExecutor implements CommandExecutor {
             };
 
             capture.start();
+
+            if (!showConsole) {
+                // CLEAN MODE: hide console output for this command
+                for (Appender a : original.values()) {
+                    root.removeAppender(a);
+                }
+            }
+
             root.addAppender(capture);
 
             try {
@@ -76,8 +80,12 @@ public final class FabricCommandExecutor implements CommandExecutor {
             } finally {
                 root.removeAppender(capture);
                 capture.stop();
-                for (Appender a : original.values()) {
-                    root.addAppender(a);
+
+                if (!showConsole) {
+                    // Restore original appenders only if we removed them
+                    for (Appender a : original.values()) {
+                        root.addAppender(a);
+                    }
                 }
             }
 
