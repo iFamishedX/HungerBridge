@@ -1,14 +1,12 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.CommandExecutor;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
-
+import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
@@ -26,10 +24,9 @@ public final class FabricCommandExecutor implements CommandExecutor {
     }
 
     private CommandSourceStack console() {
+        // Mojang-mapped: set console permission level explicitly
         return server.createCommandSourceStack()
-                .withPermission(4)
-                .withSuppressedOutput(false)
-                .withSigningContext(null);
+                .withPermissionLevel(4);
     }
 
     @Override
@@ -66,7 +63,9 @@ public final class FabricCommandExecutor implements CommandExecutor {
                     String msg = event.getMessage().getFormattedMessage();
                     if (msg == null) return;
                     String trimmed = msg.trim();
-                    if (!trimmed.isEmpty()) lines.add(trimmed);
+                    if (!trimmed.isEmpty()) {
+                        lines.add(trimmed);
+                    }
                 }
             };
 
