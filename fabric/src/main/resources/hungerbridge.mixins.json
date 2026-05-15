@@ -3,12 +3,8 @@
   "package": "com.hungerbridge.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MinecraftServerMixin",
-    "CommandSourceStackMixin",
-    "PlayerListMixin",
-    "DedicatedServerMixin",
-    "DedicatedServerNameProbeMixin",
-    "MinecraftServerNameProbeMixin"
+    "DedicatedServerProbeMixin",
+    "DedicatedServerMethodDumpMixin"
   ],
   "injectors": {
     "defaultRequire": 1
