@@ -11,9 +11,6 @@
   "entrypoints": {
     "server": [
       "com.hungerbridge.fabric.HungerBridgeFabric"
-    ],
-    "preLaunch": [
-      "com.hungerbridge.fabric.AgentPreLaunch"
     ]
   },
 
