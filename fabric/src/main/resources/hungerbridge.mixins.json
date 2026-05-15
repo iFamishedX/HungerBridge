@@ -4,7 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "MinecraftServerMixin",
-    "MinecraftServerMixin"
+    "MinecraftServerCommandLogMixin"
   ],
   "injectors": {
     "defaultRequire": 1
