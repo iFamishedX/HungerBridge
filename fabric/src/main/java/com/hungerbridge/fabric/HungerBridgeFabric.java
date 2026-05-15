@@ -31,10 +31,10 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         Path configDir = server.getFile("config").resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
-        CommandExecutor executor = cmd ->
-                server.getCommands().performPrefixedCommand(
-                        server.createCommandSourceStack(), cmd
-                );
+        config.setPlatform("fabric");
+        config.setMinecraftVersion(server.getVersion());
+
+        CommandExecutor executor = new FabricCommandExecutor(server);
 
         bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();

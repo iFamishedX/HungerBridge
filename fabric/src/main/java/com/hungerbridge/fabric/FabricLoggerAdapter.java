@@ -7,8 +7,8 @@ public final class FabricLoggerAdapter implements Logger {
 
     private final org.slf4j.Logger logger;
 
-    public FabricLoggerAdapter(String name) {
-        this.logger = LoggerFactory.getLogger(name);
+    public FabricLoggerAdapter() {
+        this.logger = LoggerFactory.getLogger("");
     }
 
     public FabricLoggerAdapter(org.slf4j.Logger logger) {
