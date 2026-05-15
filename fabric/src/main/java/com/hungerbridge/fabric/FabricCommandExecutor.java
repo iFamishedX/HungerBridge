@@ -32,6 +32,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
     @Override
     public List<String> executeWithOutput(String command) {
         List<String> lines = new ArrayList<>();
+        CommandSourceStack TEST = new CommandSourceStack();
 
         server.execute(() -> {
             CommandSourceStack source = new CommandSourceStack(
