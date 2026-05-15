@@ -9,17 +9,13 @@
   "environment": "server",
 
   "entrypoints": {
-    "preLaunch": [
-      "com.hungerbridge.fabric.prelaunch.PreLaunchEntrypoint"
-    ],
     "server": [
       "com.hungerbridge.fabric.HungerBridgeFabric"
     ]
   },
 
   "mixins": [
-    "hungerbridge.mixins.json",
-    "hungerbridge.prelaunch.mixins.json"
+    "hungerbridge.mixins.json"
   ],
 
   "depends": {
