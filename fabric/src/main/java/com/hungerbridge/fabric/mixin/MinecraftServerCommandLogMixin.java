@@ -16,16 +16,17 @@ public class MinecraftServerCommandLogMixin {
     }
 
     @Inject(
-            method = "method_43496",  // the real command output logger
+            method = "method_43496(Lnet/minecraft/class_2561;)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void hungerbridge_captureCommandOutput(Component message, CallbackInfo ci) {
-        System.out.println("[HB/DIAG] method_43496 FIRED: " + message.getString());
+    private void hungerbridge_captureCommandOutput(Object message, CallbackInfo ci) {
+        Component c = (Component) message;
+        System.out.println("[HB/DIAG] method_43496 FIRED: " + c.getString());
 
         if (OutputCapture.isActive()) {
-            OutputCapture.add(message.getString());
-            ci.cancel(); // suppress console spam
+            OutputCapture.add(c.getString());
+            ci.cancel();
         }
     }
 }
