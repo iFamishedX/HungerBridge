@@ -24,9 +24,18 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public List<String> executeWithOutput(String command) {
-        // For now, just run the command and return an empty list.
-        // Fabric will still print to console; Paper has real capture.
-        execute(command);
-        return List.of();
+        OutputCapture.begin();
+
+        server.execute(() ->
+                server.getCommands().performPrefixedCommand(
+                        server.createCommandSourceStack(), command
+                )
+        );
+
+        // Wait one tick for command to finish
+        try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+
+        OutputCapture.end();
+        return OutputCapture.get();
     }
 }

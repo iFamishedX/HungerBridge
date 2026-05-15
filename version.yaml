@@ -1,5 +1,5 @@
 run: true
-version: "2.8"
+version: "2.9"
 mc_version: "1.21.11"
 description: |
-  - Full parody
+  - Added capturing via mixin
