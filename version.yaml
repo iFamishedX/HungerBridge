@@ -1,5 +1,5 @@
 run: true
-version: "2.9.7"
+version: "2.9.8"
 mc_version: "1.21.11"
 description: |
-  - probe
+  - Fix log methods
