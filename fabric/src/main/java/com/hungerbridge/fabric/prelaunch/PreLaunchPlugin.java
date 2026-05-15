@@ -1,5 +1,6 @@
 package com.hungerbridge.fabric.prelaunch;
 
+import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
@@ -30,8 +31,18 @@ public class PreLaunchPlugin implements IMixinConfigPlugin {
     }
 
     @Override
-    public void preApply(String targetClassName, Class<?> targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
+    public void preApply(
+            String targetClassName,
+            ClassNode targetClass,
+            String mixinClassName,
+            IMixinInfo mixinInfo
+    ) {}
 
     @Override
-    public void postApply(String targetClassName, Class<?> targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
+    public void postApply(
+            String targetClassName,
+            ClassNode targetClass,
+            String mixinClassName,
+            IMixinInfo mixinInfo
+    ) {}
 }
