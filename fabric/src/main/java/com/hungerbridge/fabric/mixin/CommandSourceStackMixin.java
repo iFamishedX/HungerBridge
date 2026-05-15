@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class CommandSourceStackMixin {
 
     @Inject(method = "sendSystemMessage", at = @At("HEAD"), cancellable = true)
-    private void hungerbridge$interceptSystemMessage(Component message, boolean allowLogging, CallbackInfo ci) {
+    private void hungerbridge$interceptSystemMessage(Component message, CallbackInfo ci) {
         if (OutputCapture.isActive()) {
             OutputCapture.add(message.getString());
             ci.cancel();
@@ -20,7 +20,7 @@ public abstract class CommandSourceStackMixin {
     }
 
     @Inject(method = "sendSuccess", at = @At("HEAD"), cancellable = true)
-    private void hungerbridge$interceptSuccess(Component message, boolean broadcastToOps, CallbackInfo ci) {
+    private void hungerbridge$interceptSuccess(Component message, CallbackInfo ci) {
         if (OutputCapture.isActive()) {
             OutputCapture.add(message.getString());
             ci.cancel();
