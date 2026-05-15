@@ -12,6 +12,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public final class PaperCommandExecutor implements CommandExecutor {
@@ -40,10 +41,19 @@ public final class PaperCommandExecutor implements CommandExecutor {
 
             List<String> lines = new ArrayList<>();
 
-            // ROOT LOGGER — the only logger that actually works on Purpur
+            // ROOT LOGGER — the only reliable logger for Purpur/Paper
             Logger root = (Logger) LogManager.getRootLogger();
 
-            Appender appender = new AbstractAppender(
+            // Save all existing appenders (console, file, etc.)
+            Map<String, Appender> originalAppenders = root.getAppenders();
+
+            // Remove all appenders so NOTHING prints to console
+            for (Appender app : originalAppenders.values()) {
+                root.removeAppender(app);
+            }
+
+            // Our capture appender
+            Appender capture = new AbstractAppender(
                     "HungerBridgeCapture",
                     null,
                     PatternLayout.newBuilder().withPattern("%msg").build(),
@@ -64,17 +74,24 @@ public final class PaperCommandExecutor implements CommandExecutor {
                 }
             };
 
-            appender.start();
-            root.addAppender(appender);
+            capture.start();
+            root.addAppender(capture);
 
             try {
+                // Execute the command silently
                 plugin.getServer().dispatchCommand(
                         plugin.getServer().getConsoleSender(),
                         command
                 );
             } finally {
-                root.removeAppender(appender);
-                appender.stop();
+                // Remove capture appender
+                root.removeAppender(capture);
+                capture.stop();
+
+                // Restore original appenders
+                for (Appender app : originalAppenders.values()) {
+                    root.addAppender(app);
+                }
             }
 
             future.complete(List.copyOf(lines));
