@@ -52,7 +52,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
                     Vec3.ZERO,
                     Vec2.ZERO,
                     server.overworld(),
-                    4,
+                    net.minecraft.commands.CommandSourceStack.PermissionSet.ofLevels(4),
                     "HungerBridge",
                     Component.literal("HungerBridge"),
                     server,
