@@ -3,9 +3,9 @@ package com.hungerbridge.fabric;
 import com.hungerbridge.common.CommandExecutor;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.PermissionSet;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -33,11 +33,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
     public List<String> executeWithOutput(String command) {
         List<String> lines = new ArrayList<>();
 
-
-        // crash tests
-        CommandSourceStack.PermissionSet X = new CommandSourceStack.PermissionSet();
-        CommandSourceStack TEST = new CommandSourceStack();
-
         server.execute(() -> {
             CommandSourceStack source = new CommandSourceStack(
                     new CommandSource() {
@@ -58,7 +53,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
                     Vec3.ZERO,
                     Vec2.ZERO,
                     server.overworld(),
-                    4,
+                    PermissionSet.of(4), // ⭐ THIS IS THE FIX
                     "HungerBridge",
                     Component.literal("HungerBridge"),
                     server,
