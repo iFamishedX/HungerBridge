@@ -1,5 +1,5 @@
 run: true
-version: "2.9"
+version: "2.9.1"
 mc_version: "1.21.11"
 description: |
-  - Added capturing via mixin
+  - Added CommandSourceStack loading logs
