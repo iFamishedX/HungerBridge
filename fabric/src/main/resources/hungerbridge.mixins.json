@@ -6,7 +6,8 @@
     "MinecraftServerMixin",
     "CommandSourceStackMixin",
     "PlayerListMixin",
-    "DedicatedServerMixin"
+    "DedicatedServerMixin",
+    "PrintClassNameMixin"
   ],
   "injectors": {
     "defaultRequire": 1
