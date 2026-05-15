@@ -1,4 +1,3 @@
-// fabric/src/main/java/com/hungerbridge/fabric/mixin/MinecraftServerCommandLogMixin.java
 package com.hungerbridge.fabric.mixin;
 
 import net.minecraft.server.MinecraftServer;
@@ -12,11 +11,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MinecraftServerCommandLogMixin {
 
     @Inject(
-        method = "sendSystemMessage", // maps to method_43496
-        at = @At("HEAD")
+        method = "logMessage",   // THIS is method_43496 in Yarn
+        at = @At("HEAD"),
+        cancellable = true
     )
     private void hungerbridge_captureCommandOutput(Text message, CallbackInfo ci) {
-        // mirror whatever Paper side does with the command log
         com.hungerbridge.fabric.HungerBridgeFabric.onCommandLog(message.getString());
+        ci.cancel(); // suppress console output
     }
 }
