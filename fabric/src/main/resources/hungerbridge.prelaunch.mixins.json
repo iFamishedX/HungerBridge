@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.hungerbridge.fabric.prelaunch",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "com.hungerbridge.fabric.prelaunch.PreLaunchPlugin",
+  "mixins": [
+    "RootLoggerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
