@@ -1,15 +1,15 @@
 package com.hungerbridge.fabric;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class OutputCapture {
 
-    private static final ThreadLocal<List<String>> BUFFER =
-            ThreadLocal.withInitial(ArrayList::new);
+    private static final ThreadLocal<Boolean> ACTIVE = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<List<String>> BUFFER = ThreadLocal.withInitial(ArrayList::new);
 
-    private static final ThreadLocal<Boolean> ACTIVE =
-            ThreadLocal.withInitial(() -> false);
+    private OutputCapture() {}
 
     public static void begin() {
         ACTIVE.set(true);
@@ -25,10 +25,14 @@ public final class OutputCapture {
     }
 
     public static void add(String line) {
-        BUFFER.get().add(line);
+        if (ACTIVE.get()) {
+            BUFFER.get().add(line);
+        }
     }
 
-    public static List<String> get() {
-        return new ArrayList<>(BUFFER.get());
+    public static List<String> drain() {
+        List<String> out = new ArrayList<>(BUFFER.get());
+        BUFFER.get().clear();
+        return Collections.unmodifiableList(out);
     }
 }

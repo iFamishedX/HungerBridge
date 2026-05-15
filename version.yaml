@@ -1,5 +1,5 @@
 run: true
-version: "2.10"
+version: "3.0"
 mc_version: "1.21.11"
 description: |
-  - Fix log methods
+  - Rewrite with Java Agent

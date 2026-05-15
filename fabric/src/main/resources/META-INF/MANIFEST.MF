@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Premain-Class: com.hungerbridge.fabric.agent.HungerBridgeAgent
+Agent-Class: com.hungerbridge.fabric.agent.HungerBridgeAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true

@@ -28,4 +28,14 @@ loom {
 
 jar {
     from(project(":common").sourceSets.main.output)
+
+    // IMPORTANT: manifest must be inside the SAME jar block
+    manifest {
+        attributes(
+                "Premain-Class": "com.hungerbridge.fabric.agent.HungerBridgeAgent",
+                "Agent-Class": "com.hungerbridge.fabric.agent.HungerBridgeAgent",
+                "Can-Redefine-Classes": "true",
+                "Can-Retransform-Classes": "true"
+        )
+    }
 }
