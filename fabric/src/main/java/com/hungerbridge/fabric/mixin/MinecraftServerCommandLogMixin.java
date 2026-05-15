@@ -16,13 +16,13 @@ public class MinecraftServerCommandLogMixin {
     }
 
     @Inject(
-            method = "method_43496", 
+            method = "method_43496",   // name only
             at = @At("HEAD"),
             cancellable = true,
-            remap = false
+            remap = false              // do NOT remap the name
     )
-    private void hungerbridge_captureCommandOutput(Object message, CallbackInfo ci) {
-        Component c = (Component) message;
+    private void hungerbridge_captureCommandOutput(net.minecraft.class_2561 message, CallbackInfo ci) {
+        Component c = (Component)(Object) message;
         System.out.println("[HB/DIAG] method_43496 FIRED: " + c.getString());
 
         if (OutputCapture.isActive()) {

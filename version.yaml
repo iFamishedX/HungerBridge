@@ -1,5 +1,5 @@
 run: true
-version: "2.9.9"
+version: "2.9.10"
 mc_version: "1.21.11"
 description: |
   - Fix log methods
