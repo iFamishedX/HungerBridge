@@ -24,9 +24,8 @@ public final class FabricCommandExecutor implements CommandExecutor {
     }
 
     private CommandSourceStack console() {
-        // Mojang-mapped: set console permission level explicitly
-        return server.createCommandSourceStack()
-                .withPermissionLevel(4);
+        // Default console source already has full permission
+        return server.createCommandSourceStack();
     }
 
     @Override
