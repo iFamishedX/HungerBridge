@@ -16,10 +16,14 @@ public final class HungerBridgePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         Logger logger = (level, message) -> {
+            org.apache.logging.log4j.Logger raw =
+                    org.apache.logging.log4j.LogManager.getLogger("HungerBridge-UserLog");
+
             switch (level.toUpperCase()) {
-                case "WARN": getLogger().warning(message); break;
-                case "ERROR": getLogger().severe(message); break;
-                default: getLogger().info(message); break;
+                case "WARN": raw.warn(message); break;
+                case "ERROR": raw.error(message); break;
+                case "DEBUG": raw.debug(message); break;
+                default: raw.info(message); break;
             }
         };
 
