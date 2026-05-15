@@ -3,8 +3,7 @@
   "package": "com.hungerbridge.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MinecraftServerMixin",
-    "CommandFeedbackMixin"
+    "MinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
