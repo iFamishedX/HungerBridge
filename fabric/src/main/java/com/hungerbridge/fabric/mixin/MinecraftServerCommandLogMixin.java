@@ -16,9 +16,10 @@ public class MinecraftServerCommandLogMixin {
     }
 
     @Inject(
-            method = "method_43496(Lnet/minecraft/class_2561;)V",
+            method = "method_43496", 
             at = @At("HEAD"),
-            cancellable = true
+            cancellable = true,
+            remap = false
     )
     private void hungerbridge_captureCommandOutput(Object message, CallbackInfo ci) {
         Component c = (Component) message;
