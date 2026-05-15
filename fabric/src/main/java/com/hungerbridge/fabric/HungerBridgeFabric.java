@@ -5,7 +5,6 @@ import com.hungerbridge.common.CommandExecutor;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Logger;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.LoggerFactory;
 
@@ -21,15 +20,10 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
         SLF4J_LOGGER.info("HungerBridge (Fabric) initializing.");
-
-        // Start when the dedicated server is fully started
-        ServerLifecycleEvents.SERVER_STARTED.register(HungerBridgeFabric::onServerStarted);
-
-        // Stop cleanly on shutdown
-        ServerLifecycleEvents.SERVER_STOPPING.register(HungerBridgeFabric::onServerStopping);
     }
 
-    private static void onServerStarted(MinecraftServer server) {
+    // Called by mixin on first server tick
+    public static void onServerStarted(MinecraftServer server) {
         SLF4J_LOGGER.info("HungerBridge (Fabric) starting...");
 
         Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
@@ -48,7 +42,8 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.getPort());
     }
 
-    private static void onServerStopping(MinecraftServer server) {
+    // Called by mixin on server shutdown
+    public static void onServerStopping() {
         if (bridgeServer != null) {
             SLF4J_LOGGER.info("HungerBridge (Fabric) stopping...");
             bridgeServer.stop();
