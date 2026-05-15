@@ -1,12 +1,8 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.CommandExecutor;
-import net.minecraft.commands.CommandResultCallback;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class FabricCommandExecutor implements CommandExecutor {
@@ -28,19 +24,9 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public List<String> executeWithOutput(String command) {
-        List<String> lines = new ArrayList<>();
-
-        server.execute(() -> {
-            CommandSourceStack source =
-                    server.createCommandSourceStack().withCallback(
-                            (Component message, boolean success) -> {
-                                lines.add(message.getString());
-                            }
-                    );
-
-            server.getCommands().performPrefixedCommand(source, command);
-        });
-
-        return lines;
+        // For now, just run the command and return an empty list.
+        // Fabric will still print to console; Paper has real capture.
+        execute(command);
+        return List.of();
     }
 }
