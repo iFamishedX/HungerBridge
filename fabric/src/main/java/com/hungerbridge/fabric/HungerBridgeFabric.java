@@ -5,6 +5,7 @@ import com.hungerbridge.common.CommandExecutor;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Logger;
 import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.LoggerFactory;
 
@@ -20,19 +21,24 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
         SLF4J_LOGGER.info("HungerBridge (Fabric) initializing.");
+
+        // Start when the dedicated server is fully started
+        ServerLifecycleEvents.SERVER_STARTED.register(HungerBridgeFabric::onServerStarted);
+
+        // Stop cleanly on shutdown
+        ServerLifecycleEvents.SERVER_STOPPING.register(HungerBridgeFabric::onServerStopping);
     }
 
-    // Called by mixin on first server tick
-    public static void onServerStarted(MinecraftServer server) {
+    private static void onServerStarted(MinecraftServer server) {
         SLF4J_LOGGER.info("HungerBridge (Fabric) starting...");
 
         Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
 
-        Path configDir = server.getFile("config").resolve("HungerBridge");
+        Path configDir = server.getFile("config").toPath().resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
         config.setPlatform("fabric");
-        config.setMinecraftVersion("1.21.11");
+        config.setMinecraftVersion(server.getVersion());
 
         CommandExecutor executor = new FabricCommandExecutor(server);
 
@@ -42,8 +48,7 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.getPort());
     }
 
-    // Called by mixin on server shutdown
-    public static void onServerStopping() {
+    private static void onServerStopping(MinecraftServer server) {
         if (bridgeServer != null) {
             SLF4J_LOGGER.info("HungerBridge (Fabric) stopping...");
             bridgeServer.stop();
