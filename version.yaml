@@ -1,5 +1,5 @@
 run: true
-version: "3.2.1"
+version: "3.2.2"
 mc_version: "1.21.11"
 description: |
-  - Rewrite with Java Agent
+  - Rewrite without Java Agent
