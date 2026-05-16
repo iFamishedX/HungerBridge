@@ -2,9 +2,7 @@ plugins {
     id "fabric-loom" version "1.7-SNAPSHOT"
 }
 
-def yaml = new groovy.util.YamlSlurper()
-def versionData = yaml.parse(file("${rootDir}/version.yaml"))
-project.version = versionData.version
+project.version = gradle.ext.hbVersion
 
 dependencies {
     minecraft "com.mojang:minecraft:1.21.11"

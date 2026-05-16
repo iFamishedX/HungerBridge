@@ -10,3 +10,19 @@ pluginManagement {
 rootProject.name = "HungerBridge"
 
 include("common", "paper", "fabric")
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.yaml:snakeyaml:2.2'
+    }
+}
+
+import org.yaml.snakeyaml.Yaml
+
+def yaml = new Yaml()
+def versionData = yaml.load(file("version.yaml").text)
+
+gradle.ext.hbVersion = versionData.version

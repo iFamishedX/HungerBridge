@@ -3,9 +3,7 @@ plugins {
     id 'io.papermc.paperweight.userdev' version '1.7.1'
 }
 
-def yaml = new groovy.util.YamlSlurper()
-def versionData = yaml.parse(file("${rootDir}/version.yaml"))
-project.version = versionData.version
+project.version = gradle.ext.hbVersion
 
 dependencies {
     implementation project(":common")
