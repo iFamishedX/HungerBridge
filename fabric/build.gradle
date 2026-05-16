@@ -2,11 +2,8 @@ plugins {
     id "fabric-loom" version "1.7-SNAPSHOT"
 }
 
-import org.yaml.snakeyaml.Yaml
-
-// Read version.yaml from root project
-def yaml = new Yaml()
-def versionData = yaml.load(file("${rootDir}/version.yaml").text)
+def yaml = new groovy.yaml.YamlSlurper()
+def versionData = yaml.parse(file("${rootDir}/version.yaml"))
 project.version = versionData.version
 
 dependencies {
