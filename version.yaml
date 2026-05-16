@@ -2,5 +2,4 @@ run: true
 version: "1.2.2"
 mc_version: "1.21.11"
 description: |
-  - Added version placeholders
-  - Updated build.gradles
+  - Fixed fabric's Minecraft version requirement
