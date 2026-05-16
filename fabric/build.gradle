@@ -2,6 +2,13 @@ plugins {
     id "fabric-loom" version "1.7-SNAPSHOT"
 }
 
+import org.yaml.snakeyaml.Yaml
+
+// Read version.yaml from root project
+def yaml = new Yaml()
+def versionData = yaml.load(file("${rootDir}/version.yaml").text)
+project.version = versionData.version
+
 dependencies {
     minecraft "com.mojang:minecraft:1.21.11"
     mappings loom.officialMojangMappings()
@@ -26,14 +33,21 @@ loom {
     }
 }
 
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
 jar {
     from(project(":common").sourceSets.main.output)
 
-    // IMPORTANT: manifest must be inside the SAME jar block
     manifest {
         attributes(
-                "Can-Redefine-Classes": "true",
-                "Can-Retransform-Classes": "true"
+            "Can-Redefine-Classes": "true",
+            "Can-Retransform-Classes": "true"
         )
     }
 }

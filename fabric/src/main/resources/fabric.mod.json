@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "hungerbridge",
-  "version": "1.0.0",
+  "version": "${version}",
   "name": "HungerBridge",
   "description": "Multiloader HTTP bridge for Paper and Fabric.",
   "authors": ["iFamished"],
@@ -19,7 +19,7 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.19.2",
+    "fabricloader": ">=0.18.4",
     "minecraft": ">=1.21.11"
   }
 }
