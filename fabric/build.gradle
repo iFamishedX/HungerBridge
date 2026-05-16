@@ -2,8 +2,25 @@ plugins {
     id "fabric-loom" version "1.7-SNAPSHOT"
 }
 
-def json = new groovy.json.JsonSlurper()
-def versionData = json.parse(file("${rootDir}/version.json"))
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.0'
+    }
+}
+
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+
+def mapper = new YAMLMapper()
+def versionFile = file("${rootDir}/version.yaml")
+
+if (!versionFile.exists()) {
+    throw new GradleException("version.yaml missing at: ${versionFile}")
+}
+
+def versionData = mapper.readValue(versionFile, Map)
 project.version = versionData.version
 
 dependencies {
