@@ -2,8 +2,8 @@ plugins {
     id "fabric-loom" version "1.7-SNAPSHOT"
 }
 
-def yaml = new groovy.yaml.YamlSlurper()
-def versionData = yaml.parse(file("${rootDir}/version.yaml"))
+def json = new groovy.json.JsonSlurper()
+def versionData = json.parse(file("${rootDir}/version.json"))
 project.version = versionData.version
 
 dependencies {

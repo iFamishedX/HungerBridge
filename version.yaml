@@ -1,5 +1,5 @@
 run: true
-version: "1.2.1"
+version: "1.2.2"
 mc_version: "1.21.11"
 description: |
   - Fixed fabric's build.gradle
