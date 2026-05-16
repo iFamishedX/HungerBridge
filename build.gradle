@@ -1,26 +1,13 @@
 plugins {
     id 'java'
-    id 'io.papermc.paperweight.userdev' version '1.7.1'
 }
 
-dependencies {
-    implementation project(":common")
-    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.21.1-R0.1-SNAPSHOT")
-}
+subprojects {
+    apply plugin: 'java'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-tasks.jar {
-    // include common classes inside the Paper plugin JAR
-    from(project(":common").sourceSets.main.output)
-}
-
-processResources {
-    filesMatching("paper-plugin.yml") {
-        expand(project.properties)
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
     }
 }

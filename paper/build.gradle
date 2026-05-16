@@ -3,26 +3,21 @@ plugins {
     id 'io.papermc.paperweight.userdev' version '1.7.1'
 }
 
+def yaml = new groovy.util.YamlSlurper()
+def versionData = yaml.parse(file("${rootDir}/version.yaml"))
+project.version = versionData.version
+
 dependencies {
     implementation project(":common")
     paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.21.1-R0.1-SNAPSHOT")
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+processResources {
+    filesMatching("plugin.yml") {
+        expand "version": project.version
     }
 }
 
 tasks.jar {
-    // include common classes inside the Paper plugin JAR
     from(project(":common").sourceSets.main.output)
-}
-
-processResources {
-    filesMatching("plugin.yml") {
-        expand(
-            version: project.version
-        )
-    }
 }

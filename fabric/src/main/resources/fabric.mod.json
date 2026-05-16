@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "hungerbridge",
-  "version": "1.2.1",
+  "version": "${version}",
   "name": "HungerBridge",
   "description": "Multiloader HTTP bridge for Paper and Fabric",
   "authors": ["iFamished"],

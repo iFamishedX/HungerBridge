@@ -2,28 +2,16 @@ plugins {
     id "fabric-loom" version "1.7-SNAPSHOT"
 }
 
+def yaml = new groovy.util.YamlSlurper()
+def versionData = yaml.parse(file("${rootDir}/version.yaml"))
+project.version = versionData.version
+
 dependencies {
     minecraft "com.mojang:minecraft:1.21.11"
     mappings loom.officialMojangMappings()
 
     modImplementation "net.fabricmc:fabric-loader:0.19.2"
-
     implementation project(":common")
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-loom {
-    runs {
-        server {
-            server()
-            name "HungerBridge Server"
-        }
-    }
 }
 
 processResources {
@@ -34,11 +22,4 @@ processResources {
 
 jar {
     from(project(":common").sourceSets.main.output)
-
-    manifest {
-        attributes(
-            "Can-Redefine-Classes": "true",
-            "Can-Retransform-Classes": "true"
-        )
-    }
 }
