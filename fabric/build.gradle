@@ -2,27 +2,6 @@ plugins {
     id "fabric-loom" version "1.7-SNAPSHOT"
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.0'
-    }
-}
-
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-
-def mapper = new YAMLMapper()
-def versionFile = file("${rootDir}/version.yaml")
-
-if (!versionFile.exists()) {
-    throw new GradleException("version.yaml missing at: ${versionFile}")
-}
-
-def versionData = mapper.readValue(versionFile, Map)
-project.version = versionData.version
-
 dependencies {
     minecraft "com.mojang:minecraft:1.21.11"
     mappings loom.officialMojangMappings()
@@ -48,8 +27,6 @@ loom {
 }
 
 processResources {
-    inputs.property "version", project.version
-
     filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
