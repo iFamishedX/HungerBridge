@@ -60,8 +60,8 @@ public final class BridgeServer {
         server.createContext("/v2/ping", new PingV2());
         server.createContext("/v2/info", new InfoV2());
         server.createContext("/v2/status", new StatusV2());
-        server.createContext("/v2/run", new RunV1());
-        server.createContext("/v2/log", new LogV1());
+        server.createContext("/v2/run", new RunV2());
+        server.createContext("/v2/log", new LogV2());
 
         server.start();
         logger.log("INFO", "HungerBridge HTTP server started on port " + config.getPort());
@@ -116,12 +116,12 @@ public final class BridgeServer {
     private class LegacyRun implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
-            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
-                error(ex, 405, "method_not_allowed", "Use POST");
+            if (!config.isLegacyRunEnabled()) {
+                error(ex, 403, "forbidden", "legacy run disabled");
                 return;
             }
-            if (!config.isEnabledRun()) {
-                error(ex, 403, "forbidden", "run disabled");
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
                 return;
             }
             if (!auth(ex)) {
@@ -143,12 +143,12 @@ public final class BridgeServer {
     private class LegacyLog implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
-            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
-                error(ex, 405, "method_not_allowed", "Use POST");
+            if (!config.isLegacyLogEnabled()) {
+                error(ex, 403, "forbidden", "legacy log disabled");
                 return;
             }
-            if (!config.isEnabledLog()) {
-                error(ex, 403, "forbidden", "log disabled");
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
                 return;
             }
             if (!auth(ex)) {
@@ -172,12 +172,12 @@ public final class BridgeServer {
     private class RunV1 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
-            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
-                error(ex, 405, "method_not_allowed", "Use POST");
+            if (!config.isV1RunEnabled()) {
+                error(ex, 403, "forbidden", "v1 run disabled");
                 return;
             }
-            if (!config.isEnabledRun()) {
-                error(ex, 403, "forbidden", "run disabled");
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
                 return;
             }
             if (!auth(ex)) {
@@ -209,12 +209,12 @@ public final class BridgeServer {
     private class LogV1 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
-            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
-                error(ex, 405, "method_not_allowed", "Use POST");
+            if (!config.isV1LogEnabled()) {
+                error(ex, 403, "forbidden", "v1 log disabled");
                 return;
             }
-            if (!config.isEnabledLog()) {
-                error(ex, 403, "forbidden", "log disabled");
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
                 return;
             }
             if (!auth(ex)) {
@@ -239,6 +239,11 @@ public final class BridgeServer {
     private class StatusV1 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV1StatusEnabled()) {
+                error(ex, 403, "forbidden", "v1 status disabled");
+                return;
+            }
+
             writeJson(ex, 200, Json.obj(
                     "ok", true,
                     "bridge", config.getVersion(),
@@ -251,6 +256,11 @@ public final class BridgeServer {
     private class VersionV1 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV1VersionEnabled()) {
+                error(ex, 403, "forbidden", "v1 version disabled");
+                return;
+            }
+
             writeJson(ex, 200, Json.obj(
                     "bridge", config.getVersion(),
                     "platform", config.getPlatform(),
@@ -264,6 +274,11 @@ public final class BridgeServer {
     private class PingV2 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV2PingEnabled()) {
+                error(ex, 403, "forbidden", "v2 ping disabled");
+                return;
+            }
+
             long start = System.nanoTime();
 
             if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
@@ -289,6 +304,11 @@ public final class BridgeServer {
     private class InfoV2 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV2InfoEnabled()) {
+                error(ex, 403, "forbidden", "v2 info disabled");
+                return;
+            }
+
             if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
                 error(ex, 405, "method_not_allowed", "Use GET");
                 return;
@@ -316,6 +336,11 @@ public final class BridgeServer {
     private class StatusV2 implements HttpHandler {
         @Override
         public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV2StatusEnabled()) {
+                error(ex, 403, "forbidden", "v2 status disabled");
+                return;
+            }
+
             if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
                 error(ex, 405, "method_not_allowed", "Use GET");
                 return;
@@ -330,6 +355,73 @@ public final class BridgeServer {
             );
 
             writeJson(ex, 200, resp);
+        }
+    }
+
+    private class RunV2 implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV2RunEnabled()) {
+                error(ex, 403, "forbidden", "v2 run disabled");
+                return;
+            }
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            JsonObject json = readJson(ex);
+            if (json == null || !json.has("command")) {
+                error(ex, 400, "bad_request", "Missing field: command");
+                return;
+            }
+
+            String cmd = json.get("command").getAsString();
+            boolean silent = json.has("silent") && json.get("silent").getAsBoolean();
+            boolean showConsole = json.has("show_console") && json.get("show_console").getAsBoolean();
+
+            List<String> out = executor.executeWithOutput(cmd, showConsole);
+
+            JsonObject resp = Json.obj("ok", true);
+            if (!silent && out != null) {
+                resp.add("output", Json.GSON.toJsonTree(out));
+            }
+
+            writeJson(ex, 200, resp);
+        }
+    }
+
+    private class LogV2 implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV2LogEnabled()) {
+                error(ex, 403, "forbidden", "v2 log disabled");
+                return;
+            }
+            if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use POST");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            JsonObject json = readJson(ex);
+            if (json == null || !json.has("message")) {
+                error(ex, 400, "bad_request", "Missing field: message");
+                return;
+            }
+
+            String level = json.has("level") ? json.get("level").getAsString() : "info";
+            String msg = json.get("message").getAsString();
+
+            logger.log(level.toUpperCase(), msg);
+            writeJson(ex, 200, Json.obj("ok", true));
         }
     }
 }

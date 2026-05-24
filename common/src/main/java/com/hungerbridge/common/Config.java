@@ -20,25 +20,82 @@ public final class Config {
 
     private final int port;
     private final String authKey;
-    private final boolean enabledRun;
-    private final boolean enabledLog;
+
+    // Endpoint toggles
+    private final boolean legacyRun;
+    private final boolean legacyLog;
+
+    private final boolean v1Run;
+    private final boolean v1Log;
+    private final boolean v1Status;
+    private final boolean v1Version;
+
+    private final boolean v2Run;
+    private final boolean v2Log;
+    private final boolean v2Ping;
+    private final boolean v2Info;
+    private final boolean v2Status;
 
     // JSON API metadata
     private String platform = "unknown";
     private String minecraftVersion = "unknown";
-    private final String bridgeVersion = "1.11";
+    private final String bridgeVersion;
 
-    public Config(int port, String authKey, boolean enabledRun, boolean enabledLog) {
+    public Config(
+            int port,
+            String authKey,
+            boolean legacyRun,
+            boolean legacyLog,
+            boolean v1Run,
+            boolean v1Log,
+            boolean v1Status,
+            boolean v1Version,
+            boolean v2Run,
+            boolean v2Log,
+            boolean v2Ping,
+            boolean v2Info,
+            boolean v2Status,
+            String bridgeVersion
+    ) {
         this.port = port;
         this.authKey = authKey;
-        this.enabledRun = enabledRun;
-        this.enabledLog = enabledLog;
+
+        this.legacyRun = legacyRun;
+        this.legacyLog = legacyLog;
+
+        this.v1Run = v1Run;
+        this.v1Log = v1Log;
+        this.v1Status = v1Status;
+        this.v1Version = v1Version;
+
+        this.v2Run = v2Run;
+        this.v2Log = v2Log;
+        this.v2Ping = v2Ping;
+        this.v2Info = v2Info;
+        this.v2Status = v2Status;
+
+        this.bridgeVersion = bridgeVersion;
     }
 
     public int getPort() { return port; }
     public String getAuthKey() { return authKey; }
-    public boolean isEnabledRun() { return enabledRun; }
-    public boolean isEnabledLog() { return enabledLog; }
+
+    // Legacy toggles
+    public boolean isLegacyRunEnabled() { return legacyRun; }
+    public boolean isLegacyLogEnabled() { return legacyLog; }
+
+    // v1 toggles
+    public boolean isV1RunEnabled() { return v1Run; }
+    public boolean isV1LogEnabled() { return v1Log; }
+    public boolean isV1StatusEnabled() { return v1Status; }
+    public boolean isV1VersionEnabled() { return v1Version; }
+
+    // v2 toggles
+    public boolean isV2RunEnabled() { return v2Run; }
+    public boolean isV2LogEnabled() { return v2Log; }
+    public boolean isV2PingEnabled() { return v2Ping; }
+    public boolean isV2InfoEnabled() { return v2Info; }
+    public boolean isV2StatusEnabled() { return v2Status; }
 
     public String getVersion() { return bridgeVersion; }
     public String getPlatform() { return platform; }
@@ -56,20 +113,52 @@ public final class Config {
 
             Path configFile = configDir.resolve("config.yaml");
 
+            // Load version.yaml
+            String bridgeVersion = "unknown";
+            try {
+                Path versionFile = configDir.getParent().getParent().resolve("version.yaml");
+                if (Files.exists(versionFile)) {
+                    Yaml yaml = new Yaml();
+                    try (InputStream vin = Files.newInputStream(versionFile)) {
+                        Object vloaded = yaml.load(vin);
+                        if (vloaded instanceof Map) {
+                            Map<String, Object> vroot = (Map<String, Object>) vloaded;
+                            bridgeVersion = (String) vroot.getOrDefault("version", "unknown");
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+
+            // Generate default config
             if (!Files.exists(configFile)) {
                 logger.log("WARN", "Config file not found, generating default config at " + configFile);
 
                 Map<String, Object> root = new HashMap<>();
-                root.put("port", 1913);
+                root.put("port", 30007);
 
                 Map<String, Object> auth = new HashMap<>();
                 auth.put("key", UUID.randomUUID().toString());
                 root.put("auth", auth);
 
-                Map<String, Object> enabled = new HashMap<>();
-                enabled.put("run", Boolean.TRUE);
-                enabled.put("log", Boolean.TRUE);
-                root.put("enabled", enabled);
+                Map<String, Object> v2 = new HashMap<>();
+                v2.put("run", true);
+                v2.put("log", true);
+                v2.put("ping", true);
+                v2.put("info", true);
+                v2.put("status", true);
+                root.put("v2-endpoints", v2);
+
+                Map<String, Object> v1 = new HashMap<>();
+                v1.put("run", false);
+                v1.put("log", false);
+                v1.put("status", false);
+                v1.put("version", false);
+                root.put("v1-endpoints", v1);
+
+                Map<String, Object> legacy = new HashMap<>();
+                legacy.put("run", false);
+                legacy.put("log", false);
+                root.put("legacy-endpoints", legacy);
 
                 DumperOptions options = new DumperOptions();
                 options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -82,6 +171,7 @@ public final class Config {
                 }
             }
 
+            // Load config.yaml
             Yaml yaml = new Yaml();
             Map<String, Object> root;
             try (InputStream in = Files.newInputStream(configFile)) {
@@ -92,20 +182,39 @@ public final class Config {
                 root = (Map<String, Object>) loaded;
             }
 
-            int port = ((Number) root.getOrDefault("port", 1913)).intValue();
+            int port = ((Number) root.getOrDefault("port", 30007)).intValue();
 
             Map<String, Object> auth = (Map<String, Object>) root.getOrDefault("auth", new HashMap<>());
             String authKey = (String) auth.getOrDefault("key", "");
 
-            Map<String, Object> enabled = (Map<String, Object>) root.getOrDefault("enabled", new HashMap<>());
-            boolean enabledRun = (Boolean) enabled.getOrDefault("run", Boolean.TRUE);
-            boolean enabledLog = (Boolean) enabled.getOrDefault("log", Boolean.TRUE);
+            Map<String, Object> v2 = (Map<String, Object>) root.getOrDefault("v2-endpoints", new HashMap<>());
+            Map<String, Object> v1 = (Map<String, Object>) root.getOrDefault("v1-endpoints", new HashMap<>());
+            Map<String, Object> legacy = (Map<String, Object>) root.getOrDefault("legacy-endpoints", new HashMap<>());
 
-            if (authKey == null || authKey.isEmpty()) {
-                logger.log("WARN", "auth.key is empty in config.yaml; HTTP endpoints will be unusable until set.");
-            }
+            return new Config(
+                    port,
+                    authKey,
 
-            return new Config(port, authKey, enabledRun, enabledLog);
+                    // legacy
+                    (Boolean) legacy.getOrDefault("run", false),
+                    (Boolean) legacy.getOrDefault("log", false),
+
+                    // v1
+                    (Boolean) v1.getOrDefault("run", false),
+                    (Boolean) v1.getOrDefault("log", false),
+                    (Boolean) v1.getOrDefault("status", false),
+                    (Boolean) v1.getOrDefault("version", false),
+
+                    // v2
+                    (Boolean) v2.getOrDefault("run", true),
+                    (Boolean) v2.getOrDefault("log", true),
+                    (Boolean) v2.getOrDefault("ping", true),
+                    (Boolean) v2.getOrDefault("info", true),
+                    (Boolean) v2.getOrDefault("status", true),
+
+                    bridgeVersion
+            );
+
         } catch (IOException e) {
             throw new RuntimeException("Failed to load HungerBridge config", e);
         }

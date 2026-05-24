@@ -19,12 +19,12 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
 
     @Override
     public void onInitializeServer() {
-        SLF4J_LOGGER.info("HungerBridge (Fabric) initializing.");
+        SLF4J_LOGGER.info("HungerBridge initializing.");
     }
 
     // Called by mixin on first server tick
     public static void onServerStarted(MinecraftServer server) {
-        SLF4J_LOGGER.info("HungerBridge (Fabric) starting...");
+        SLF4J_LOGGER.info("HungerBridge starting...");
 
         Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
 
@@ -42,13 +42,13 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
 
-        SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.getPort());
+        SLF4J_LOGGER.info("HungerBridge started on port {}", config.getPort());
     }
 
     // Called by mixin on server shutdown
     public static void onServerStopping() {
         if (bridgeServer != null) {
-            SLF4J_LOGGER.info("HungerBridge (Fabric) stopping...");
+            SLF4J_LOGGER.info("HungerBridge stopping...");
             bridgeServer.stop();
             bridgeServer = null;
         }

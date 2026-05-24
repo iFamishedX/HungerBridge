@@ -41,7 +41,7 @@ public final class HungerBridgePlugin extends JavaPlugin {
         bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
 
-        getLogger().info("HungerBridge (Paper) enabled.");
+        getLogger().info("HungerBridge enabled.");
     }
 
     @Override
@@ -50,6 +50,6 @@ public final class HungerBridgePlugin extends JavaPlugin {
             bridgeServer.stop();
             bridgeServer = null;
         }
-        getLogger().info("HungerBridge (Paper) disabled.");
+        getLogger().info("HungerBridge disabled.");
     }
 }
