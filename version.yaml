@@ -1,5 +1,11 @@
 run: true
-version: "1.2.2"
+version: "2.0-alpha"
 mc_version: "1.21.11"
 description: |
-  - Fixed fabric's Minecraft version requirement
+  - API version is now v2
+    - Added endpoints:
+      - ping
+      - status
+    - Deprecated endpoints:
+      - /v1/version
+      - /v1/status

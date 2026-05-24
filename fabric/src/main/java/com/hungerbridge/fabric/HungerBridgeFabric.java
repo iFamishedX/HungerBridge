@@ -37,8 +37,9 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         config.setMinecraftVersion(server.getServerVersion());
 
         CommandExecutor executor = new FabricCommandExecutor(server);
+        FabricStatusProvider statusProvider = new FabricStatusProvider(server);
 
-        bridgeServer = new BridgeServer(config, logger, executor);
+        bridgeServer = new BridgeServer(config, logger, executor, statusProvider);
         bridgeServer.start();
 
         SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.getPort());

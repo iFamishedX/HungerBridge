@@ -15,19 +15,25 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * HTTP bridge server used by both Fabric and Paper modules.
+ * Adds v1 handlers (legacy + JSON v1) and v2 handlers (ping/info/status/run/log).
+ */
 public final class BridgeServer {
 
     private final Config config;
     private final Logger logger;
     private final CommandExecutor executor;
+    private final ServerStatusProvider statusProvider;
 
     private HttpServer server;
     private ExecutorService pool;
 
-    public BridgeServer(Config config, Logger logger, CommandExecutor executor) {
+    public BridgeServer(Config config, Logger logger, CommandExecutor executor, ServerStatusProvider statusProvider) {
         this.config = config;
         this.logger = logger;
         this.executor = executor;
+        this.statusProvider = statusProvider;
     }
 
     public synchronized void start() {
@@ -51,6 +57,13 @@ public final class BridgeServer {
         server.createContext("/v1/log", new LogV1());
         server.createContext("/v1/status", new StatusV1());
         server.createContext("/v1/version", new VersionV1());
+
+        // JSON v2
+        server.createContext("/v2/ping", new PingV2());
+        server.createContext("/v2/info", new InfoV2());
+        server.createContext("/v2/status", new StatusV2());
+        server.createContext("/v2/run", new RunV1());
+        server.createContext("/v2/log", new LogV1());
 
         server.start();
         logger.log("INFO", "HungerBridge HTTP server started on port " + config.getPort());
@@ -245,6 +258,102 @@ public final class BridgeServer {
                     "platform", config.getPlatform(),
                     "minecraft", config.getMinecraftVersion()
             ));
+        }
+    }
+
+    // v2 handlers
+
+    private class PingV2 implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            long start = System.nanoTime();
+
+            if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use GET");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            long end = System.nanoTime();
+            long latencyMs = (end - start) / 1_000_000L;
+
+            JsonObject resp = Json.obj(
+                    "ok", true,
+                    "latency_ms", latencyMs
+            );
+            writeJson(ex, 200, resp);
+        }
+    }
+
+    private class InfoV2 implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use GET");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            JsonObject bridge = Json.obj(
+                    "version", config.getVersion(),
+                    "platform", config.getPlatform(),
+                    "minecraft", config.getMinecraftVersion()
+            );
+
+            JsonObject resp = Json.obj(
+                    "ok", true,
+                    "bridge", bridge
+            );
+
+            writeJson(ex, 200, resp);
+        }
+    }
+
+    private class StatusV2 implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use GET");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            Double tps = null;
+            Double tickTime = null;
+            int players = 0;
+
+            if (statusProvider != null) {
+                try {
+                    tps = statusProvider.getTps();
+                } catch (Throwable ignored) {
+                }
+                try {
+                    tickTime = statusProvider.getTickTimeMs();
+                } catch (Throwable ignored) {
+                }
+                try {
+                    players = statusProvider.getPlayerCount();
+                } catch (Throwable ignored) {
+                }
+            }
+
+            JsonObject resp = Json.obj(
+                    "ok", true,
+                    "tps", tps,
+                    "tick_time_ms", tickTime,
+                    "player_count", players
+            );
+
+            writeJson(ex, 200, resp);
         }
     }
 }
