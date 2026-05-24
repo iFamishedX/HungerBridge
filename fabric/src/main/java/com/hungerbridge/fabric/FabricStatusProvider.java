@@ -7,10 +7,10 @@ import net.minecraft.server.MinecraftServer;
  * Fabric implementation of ServerStatusProvider using Mojang mappings (1.21.11).
  *
  * Uses:
- *  - server.getAverageTickTime() -> average tick time in ms
- *  - server.getCurrentPlayerCount() -> player count
+ *  - server.getAverageNanosPerTick() -> average tick time in nanoseconds
+ *  - server.getPlayerManager().getPlayerList().size() -> player count
  *
- * TPS is derived as 1000.0 / tickMs when tickMs is available.
+ * TPS is derived as 1_000_000_000.0 / nanosPerTick.
  */
 public final class FabricStatusProvider implements ServerStatusProvider {
 
@@ -23,30 +23,31 @@ public final class FabricStatusProvider implements ServerStatusProvider {
     @Override
     public Double getTps() {
         try {
-            double tickMs = server.getAverageTickTime();
-            if (tickMs <= 0.0) return null;
-            return 1000.0 / tickMs;
-        } catch (NoSuchMethodError | Throwable ignored) {
+            long nanos = server.getAverageNanosPerTick();
+            if (nanos <= 0L) return null;
+            return 1_000_000_000.0 / nanos;
+        } catch (Throwable ignored) {
+            return null;
         }
-        return null;
     }
 
     @Override
     public Double getTickTimeMs() {
         try {
-            return (double) server.getAverageTickTime();
-        } catch (NoSuchMethodError | Throwable ignored) {
+            long nanos = server.getAverageNanosPerTick();
+            if (nanos <= 0L) return null;
+            return nanos / 1_000_000.0;
+        } catch (Throwable ignored) {
+            return null;
         }
-        return null;
     }
 
     @Override
     public int getPlayerCount() {
         try {
-            // Mojang mapping: getCurrentPlayerCount()
-            return server.getCurrentPlayerCount();
-        } catch (NoSuchMethodError | Throwable ignored) {
+            return server.getPlayerManager().getPlayerList().size();
+        } catch (Throwable ignored) {
+            return 0;
         }
-        return 0;
     }
 }
