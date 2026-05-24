@@ -17,23 +17,21 @@ import java.util.concurrent.Executors;
 
 /**
  * HTTP bridge server used by both Fabric and Paper modules.
- * Adds v1 handlers (legacy + JSON v1) and v2 handlers (ping/info/status/run/log).
+ * Provides legacy, v1, and v2 endpoints.
  */
 public final class BridgeServer {
 
     private final Config config;
     private final Logger logger;
     private final CommandExecutor executor;
-    private final ServerStatusProvider statusProvider;
 
     private HttpServer server;
     private ExecutorService pool;
 
-    public BridgeServer(Config config, Logger logger, CommandExecutor executor, ServerStatusProvider statusProvider) {
+    public BridgeServer(Config config, Logger logger, CommandExecutor executor) {
         this.config = config;
         this.logger = logger;
         this.executor = executor;
-        this.statusProvider = statusProvider;
     }
 
     public synchronized void start() {
@@ -327,30 +325,8 @@ public final class BridgeServer {
                 return;
             }
 
-            Double tps = null;
-            Double tickTime = null;
-            int players = 0;
-
-            if (statusProvider != null) {
-                try {
-                    tps = statusProvider.getTps();
-                } catch (Throwable ignored) {
-                }
-                try {
-                    tickTime = statusProvider.getTickTimeMs();
-                } catch (Throwable ignored) {
-                }
-                try {
-                    players = statusProvider.getPlayerCount();
-                } catch (Throwable ignored) {
-                }
-            }
-
             JsonObject resp = Json.obj(
-                    "ok", true,
-                    "tps", tps,
-                    "tick_time_ms", tickTime,
-                    "player_count", players
+                    "ok", true
             );
 
             writeJson(ex, 200, resp);
