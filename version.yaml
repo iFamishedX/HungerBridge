@@ -4,7 +4,6 @@ mc_version: "1.21.11"
 description: |
   - API version is now v2
     - Added endpoints:
-      - ping
       - status
     - Deprecated endpoints:
       - /v1/version
