@@ -3,15 +3,6 @@ package com.hungerbridge.fabric;
 import com.hungerbridge.common.ServerStatusProvider;
 import net.minecraft.server.MinecraftServer;
 
-/**
- * Fabric implementation of ServerStatusProvider using Mojang mappings (1.21.11).
- *
- * Uses:
- *  - server.getAverageTickTime() -> average tick time in milliseconds
- *  - server.getCurrentPlayerCount() -> player count
- *
- * TPS is derived as 1000.0 / tickMs.
- */
 public final class FabricStatusProvider implements ServerStatusProvider {
 
     private final MinecraftServer server;
@@ -22,24 +13,16 @@ public final class FabricStatusProvider implements ServerStatusProvider {
 
     @Override
     public Double getTps() {
-        double tickMs = server.getAverageTickTime();
-        if (tickMs <= 0.0) {
-            return null;
-        }
-        return 1000.0 / tickMs;
+        return null;
     }
 
     @Override
     public Double getTickTimeMs() {
-        double tickMs = server.getAverageTickTime();
-        if (tickMs <= 0.0) {
-            return null;
-        }
-        return tickMs;
+        return null;
     }
 
     @Override
     public int getPlayerCount() {
-        return server.getCurrentPlayerCount();
+        return server.getPlayerManager().getPlayerList().size();
     }
 }
