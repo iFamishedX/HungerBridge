@@ -34,9 +34,11 @@ public final class HungerBridgePlugin extends JavaPlugin {
         config.setMinecraftVersion(Bukkit.getVersion());
 
         CommandExecutor executor = new PaperCommandExecutor(this);
-        PaperStatusProvider statusProvider = new PaperStatusProvider(getServer());
 
-        bridgeServer = new BridgeServer(config, logger, executor, statusProvider);
+        // NOTE: PaperServerInfoProvider exists but is NOT passed into BridgeServer anymore.
+        PaperServerInfoProvider infoProvider = new PaperServerInfoProvider(getServer());
+
+        bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
 
         getLogger().info("HungerBridge (Paper) enabled.");

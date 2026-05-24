@@ -1,23 +1,23 @@
-package com.hungerbridge.paper;
+package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.ServerInfoProvider;
-import org.bukkit.Server;
+import net.minecraft.server.MinecraftServer;
 
-public final class PaperServerInfoProvider implements ServerInfoProvider {
+public final class FabricServerInfoProvider implements ServerInfoProvider {
 
-    private final Server server;
+    private final MinecraftServer server;
 
-    public PaperServerInfoProvider(Server server) {
+    public FabricServerInfoProvider(MinecraftServer server) {
         this.server = server;
     }
 
     @Override
     public String getMinecraftVersion() {
-        return server.getMinecraftVersion();
+        return server.getVersion();
     }
 
     @Override
     public String getServerSoftware() {
-        return server.getName();
+        return "Fabric"; // Will add Quilt checking later
     }
 }
