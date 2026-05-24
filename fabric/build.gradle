@@ -2,10 +2,6 @@ plugins {
     id "fabric-loom" version "1.7-SNAPSHOT"
 }
 
-loom {
-    useOfficialMojangMappings()
-}
-
 project.version = gradle.ext.hbVersion
 
 dependencies {
