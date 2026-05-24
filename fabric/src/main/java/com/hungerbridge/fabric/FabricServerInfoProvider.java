@@ -13,11 +13,11 @@ public final class FabricServerInfoProvider implements ServerInfoProvider {
 
     @Override
     public String getMinecraftVersion() {
-        return server.getVersion();
+        return server.getServerVersion(); // Mojang-mapped, correct
     }
 
     @Override
     public String getServerSoftware() {
-        return "Fabric"; // Will add Quilt checking later
+        return "Fabric";
     }
 }

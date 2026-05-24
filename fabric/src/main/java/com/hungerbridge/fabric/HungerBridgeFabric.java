@@ -28,18 +28,18 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
 
         Logger logger = new FabricLoggerAdapter(SLF4J_LOGGER);
 
-        // getFile(String) already returns a Path in Mojang mappings
         Path configDir = server.getFile("config").resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
         config.setPlatform("fabric");
-        // Mojang-mapped equivalent of Paper's getVersion()
-        config.setMinecraftVersion(server.getServerVersion());
+        config.setMinecraftVersion(server.getServerVersion()); // Mojang-mapped
 
         CommandExecutor executor = new FabricCommandExecutor(server);
-        FabricStatusProvider statusProvider = new FabricStatusProvider(server);
 
-        bridgeServer = new BridgeServer(config, logger, executor, statusProvider);
+        // Info provider exists but is NOT passed into BridgeServer
+        FabricServerInfoProvider infoProvider = new FabricServerInfoProvider(server);
+
+        bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
 
         SLF4J_LOGGER.info("HungerBridge (Fabric) started on port {}", config.getPort());
