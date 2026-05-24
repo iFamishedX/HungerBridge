@@ -3,11 +3,7 @@ plugins {
 }
 
 loom {
-    splitEnvironmentSourceSets()
-
-    mappings {
-        officialMojangMappings()
-    }
+    useOfficialMojangMappings()
 }
 
 project.version = gradle.ext.hbVersion

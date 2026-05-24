@@ -7,10 +7,10 @@ import net.minecraft.server.MinecraftServer;
  * Fabric implementation of ServerStatusProvider using Mojang mappings (1.21.11).
  *
  * Uses:
- *  - server.getAverageNanosPerTick() -> average tick time in nanoseconds
- *  - server.getPlayerManager().getPlayerList().size() -> player count
+ *  - server.getAverageTickTime() -> average tick time in milliseconds
+ *  - server.getCurrentPlayerCount() -> player count
  *
- * TPS is derived as 1_000_000_000.0 / nanosPerTick.
+ * TPS is derived as 1000.0 / tickMs.
  */
 public final class FabricStatusProvider implements ServerStatusProvider {
 
@@ -22,32 +22,24 @@ public final class FabricStatusProvider implements ServerStatusProvider {
 
     @Override
     public Double getTps() {
-        try {
-            long nanos = server.getAverageNanosPerTick();
-            if (nanos <= 0L) return null;
-            return 1_000_000_000.0 / nanos;
-        } catch (Throwable ignored) {
+        double tickMs = server.getAverageTickTime();
+        if (tickMs <= 0.0) {
             return null;
         }
+        return 1000.0 / tickMs;
     }
 
     @Override
     public Double getTickTimeMs() {
-        try {
-            long nanos = server.getAverageNanosPerTick();
-            if (nanos <= 0L) return null;
-            return nanos / 1_000_000.0;
-        } catch (Throwable ignored) {
+        double tickMs = server.getAverageTickTime();
+        if (tickMs <= 0.0) {
             return null;
         }
+        return tickMs;
     }
 
     @Override
     public int getPlayerCount() {
-        try {
-            return server.getPlayerManager().getPlayerList().size();
-        } catch (Throwable ignored) {
-            return 0;
-        }
+        return server.getCurrentPlayerCount();
     }
 }
