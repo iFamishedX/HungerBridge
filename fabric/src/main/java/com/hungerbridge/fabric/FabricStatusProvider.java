@@ -1,7 +1,7 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.ServerStatusProvider;
-import com.hungerbridge.fabric.mixin.MixinMinecraftServer;
+import com.hungerbridge.fabric.mixin.MinecraftServerMixin;
 import net.minecraft.server.MinecraftServer;
 
 public class FabricStatusProvider implements ServerStatusProvider {
@@ -22,7 +22,7 @@ public class FabricStatusProvider implements ServerStatusProvider {
 
     @Override
     public double getTps() {
-        return calcTps(((MixinMinecraftServer) server).getTickTimes());
+        return calcTps(((MinecraftServerMixin) server).getTickTimes());
     }
 
     @Override
@@ -34,7 +34,7 @@ public class FabricStatusProvider implements ServerStatusProvider {
 
     @Override
     public double getTickTimeMs() {
-        long[] times = ((MixinMinecraftServer) server).getTickTimes();
+        long[] times = ((MinecraftServerMixin) server).getTickTimes();
         long avg = 0;
         for (long t : times) avg += t;
         avg /= times.length;
