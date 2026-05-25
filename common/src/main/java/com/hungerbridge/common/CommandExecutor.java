@@ -1,5 +1,6 @@
 package com.hungerbridge.common;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,5 +31,49 @@ public interface CommandExecutor {
      */
     default List<String> executeWithOutput(String command) {
         return executeWithOutput(command, false);
+    }
+
+    // --- Optional status hooks (platforms can override) ---
+
+    /**
+     * Current TPS (last 20 ticks or equivalent).
+     */
+    default double getTps() {
+        return -1.0;
+    }
+
+    /**
+     * 1-minute TPS average, if available.
+     */
+    default double getTps1m() {
+        return -1.0;
+    }
+
+    /**
+     * 5-minute TPS average, if available.
+     */
+    default double getTps5m() {
+        return -1.0;
+    }
+
+    /**
+     * 15-minute TPS average, if available.
+     */
+    default double getTps15m() {
+        return -1.0;
+    }
+
+    /**
+     * Average tick time in milliseconds.
+     */
+    default double getTickTimeMs() {
+        return -1.0;
+    }
+
+    /**
+     * Online player names.
+     */
+    default List<String> getOnlinePlayerNames() {
+        return Collections.emptyList();
     }
 }

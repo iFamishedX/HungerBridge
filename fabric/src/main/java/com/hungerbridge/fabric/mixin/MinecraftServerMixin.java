@@ -4,6 +4,7 @@ import com.hungerbridge.fabric.HungerBridgeFabric;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -26,4 +27,8 @@ public abstract class MinecraftServerMixin {
     private void hungerbridge$onStop(CallbackInfo ci) {
         HungerBridgeFabric.onServerStopping();
     }
+
+    // Expose tickTimes for TPS calculation (Fabric side)
+    @Accessor("tickTimes")
+    public abstract long[] hungerbridge$getTickTimes();
 }

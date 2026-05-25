@@ -1,8 +1,12 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.CommandExecutor;
+import com.hungerbridge.fabric.mixin.MinecraftServerMixin;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.LogEvent;
@@ -97,5 +101,63 @@ public final class FabricCommandExecutor implements CommandExecutor {
         } catch (Exception e) {
             return List.of();
         }
+    }
+
+    // --- TPS / tick time ---
+
+    @Override
+    public double getTps() {
+        long[] times = ((MinecraftServerMixin) (Object) server).hungerbridge$getTickTimes();
+        if (times == null || times.length == 0) return -1.0;
+
+        long avg = 0L;
+        for (long t : times) avg += t;
+        avg /= times.length;
+
+        double ms = avg / 1_000_000.0;
+        if (ms <= 0.0) return -1.0;
+
+        double tps = 1000.0 / ms;
+        return Math.min(20.0, tps);
+    }
+
+    @Override
+    public double getTps1m() {
+        // Vanilla Fabric doesn't track rolling TPS windows; reuse current TPS.
+        return getTps();
+    }
+
+    @Override
+    public double getTps5m() {
+        return getTps();
+    }
+
+    @Override
+    public double getTps15m() {
+        return getTps();
+    }
+
+    @Override
+    public double getTickTimeMs() {
+        long[] times = ((MinecraftServerMixin) (Object) server).hungerbridge$getTickTimes();
+        if (times == null || times.length == 0) return -1.0;
+
+        long avg = 0L;
+        for (long t : times) avg += t;
+        avg /= times.length;
+
+        return avg / 1_000_000.0;
+    }
+
+    // --- Players ---
+
+    @Override
+    public List<String> getOnlinePlayerNames() {
+        List<String> names = new ArrayList<>();
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            Component name = player.getName();
+            names.add(name.getString());
+        }
+        return names;
     }
 }

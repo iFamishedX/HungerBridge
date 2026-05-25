@@ -1,6 +1,7 @@
 run: true
-version: "2.1-alpha"
+version: "2.2-alpha"
 mc_version: "1.21.11"
 description: |
-  - Added new config fields
-  - Changed messages
+  - Added endpoints:
+    - /v2/tps
+    - /v2/players

@@ -62,6 +62,8 @@ public final class BridgeServer {
         server.createContext("/v2/status", new StatusV2());
         server.createContext("/v2/run", new RunV2());
         server.createContext("/v2/log", new LogV2());
+        server.createContext("/v2/tps", new TpsV2());
+        server.createContext("/v2/players", new PlayersV2());
 
         server.start();
         logger.log("INFO", "HungerBridge HTTP server started on port " + config.getPort());
@@ -422,6 +424,70 @@ public final class BridgeServer {
 
             logger.log(level.toUpperCase(), msg);
             writeJson(ex, 200, Json.obj("ok", true));
+        }
+    }
+
+    private class TpsV2 implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV2TpsEnabled()) {
+                error(ex, 403, "forbidden", "v2 tps disabled");
+                return;
+            }
+            if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use GET");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            JsonObject resp = Json.obj(
+                    "ok", true,
+                    "tps", executor.getTps(),
+                    "tps_1m", executor.getTps1m(),
+                    "tps_5m", executor.getTps5m(),
+                    "tps_15m", executor.getTps15m(),
+                    "tick_time_ms", executor.getTickTimeMs()
+            );
+
+            writeJson(ex, 200, resp);
+        }
+    }
+
+    private class PlayersV2 implements HttpHandler {
+        @Override
+        public void handle(HttpExchange ex) throws IOException {
+            if (!config.isV2PlayersEnabled()) {
+                error(ex, 403, "forbidden", "v2 players disabled");
+                return;
+            }
+            if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
+                error(ex, 405, "method_not_allowed", "Use GET");
+                return;
+            }
+            if (!auth(ex)) {
+                error(ex, 401, "unauthorized", "Invalid X-Auth-Key");
+                return;
+            }
+
+            int max = config.getPlayersMaxList();
+
+            List<String> names = executor.getOnlinePlayerNames();
+            int count = names.size();
+
+            if (names.size() > max) {
+                names = names.subList(0, max);
+            }
+
+            JsonObject resp = Json.obj(
+                    "ok", true,
+                    "count", count,
+                    "players", Json.GSON.toJsonTree(names)
+            );
+
+            writeJson(ex, 200, resp);
         }
     }
 }

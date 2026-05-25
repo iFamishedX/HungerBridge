@@ -35,6 +35,11 @@ public final class Config {
     private final boolean v2Ping;
     private final boolean v2Info;
     private final boolean v2Status;
+    private final boolean v2Tps;
+    private final boolean v2Players;
+
+    // Players config
+    private final int playersMaxList;
 
     // JSON API metadata
     private String platform = "unknown";
@@ -55,6 +60,9 @@ public final class Config {
             boolean v2Ping,
             boolean v2Info,
             boolean v2Status,
+            boolean v2Tps,
+            boolean v2Players,
+            int playersMaxList,
             String bridgeVersion
     ) {
         this.port = port;
@@ -73,6 +81,10 @@ public final class Config {
         this.v2Ping = v2Ping;
         this.v2Info = v2Info;
         this.v2Status = v2Status;
+        this.v2Tps = v2Tps;
+        this.v2Players = v2Players;
+
+        this.playersMaxList = playersMaxList;
 
         this.bridgeVersion = bridgeVersion;
     }
@@ -96,6 +108,10 @@ public final class Config {
     public boolean isV2PingEnabled() { return v2Ping; }
     public boolean isV2InfoEnabled() { return v2Info; }
     public boolean isV2StatusEnabled() { return v2Status; }
+    public boolean isV2TpsEnabled() { return v2Tps; }
+    public boolean isV2PlayersEnabled() { return v2Players; }
+
+    public int getPlayersMaxList() { return playersMaxList; }
 
     public String getVersion() { return bridgeVersion; }
     public String getPlatform() { return platform; }
@@ -146,6 +162,8 @@ public final class Config {
                 v2.put("ping", true);
                 v2.put("info", true);
                 v2.put("status", true);
+                v2.put("tps", true);
+                v2.put("players", true);
                 root.put("v2-endpoints", v2);
 
                 Map<String, Object> v1 = new HashMap<>();
@@ -159,6 +177,10 @@ public final class Config {
                 legacy.put("run", false);
                 legacy.put("log", false);
                 root.put("legacy-endpoints", legacy);
+
+                Map<String, Object> players = new HashMap<>();
+                players.put("max-list", 50);
+                root.put("players", players);
 
                 DumperOptions options = new DumperOptions();
                 options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -190,6 +212,7 @@ public final class Config {
             Map<String, Object> v2 = (Map<String, Object>) root.getOrDefault("v2-endpoints", new HashMap<>());
             Map<String, Object> v1 = (Map<String, Object>) root.getOrDefault("v1-endpoints", new HashMap<>());
             Map<String, Object> legacy = (Map<String, Object>) root.getOrDefault("legacy-endpoints", new HashMap<>());
+            Map<String, Object> players = (Map<String, Object>) root.getOrDefault("players", new HashMap<>());
 
             return new Config(
                     port,
@@ -211,6 +234,11 @@ public final class Config {
                     (Boolean) v2.getOrDefault("ping", true),
                     (Boolean) v2.getOrDefault("info", true),
                     (Boolean) v2.getOrDefault("status", true),
+                    (Boolean) v2.getOrDefault("tps", true),
+                    (Boolean) v2.getOrDefault("players", true),
+
+                    // players
+                    ((Number) players.getOrDefault("max-list", 50)).intValue(),
 
                     bridgeVersion
             );
