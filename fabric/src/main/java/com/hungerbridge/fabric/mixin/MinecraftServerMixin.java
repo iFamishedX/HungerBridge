@@ -28,7 +28,6 @@ public abstract class MinecraftServerMixin {
         HungerBridgeFabric.onServerStopping();
     }
 
-    // Expose tickTimes for TPS calculation (Fabric side)
-    @Accessor("tickTimes")
-    public abstract long[] hungerbridge$getTickTimes();
+    @Accessor("tickTimesNanos")
+    public abstract long[] hungerbridge$getTickTimesNanos();
 }

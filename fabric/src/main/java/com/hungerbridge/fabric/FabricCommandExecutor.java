@@ -103,16 +103,15 @@ public final class FabricCommandExecutor implements CommandExecutor {
         }
     }
 
-    // --- TPS / tick time ---
 
     @Override
     public double getTps() {
-        long[] times = ((MinecraftServerMixin) (Object) server).hungerbridge$getTickTimes();
-        if (times == null || times.length == 0) return -1.0;
+        long[] nanos = ((MinecraftServerMixin) (Object) server).hungerbridge$getTickTimesNanos();
+        if (nanos == null || nanos.length == 0) return -1.0;
 
         long avg = 0L;
-        for (long t : times) avg += t;
-        avg /= times.length;
+        for (long t : nanos) avg += t;
+        avg /= nanos.length;
 
         double ms = avg / 1_000_000.0;
         if (ms <= 0.0) return -1.0;
@@ -123,7 +122,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTps1m() {
-        // Vanilla Fabric doesn't track rolling TPS windows; reuse current TPS.
         return getTps();
     }
 
@@ -139,12 +137,12 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTickTimeMs() {
-        long[] times = ((MinecraftServerMixin) (Object) server).hungerbridge$getTickTimes();
-        if (times == null || times.length == 0) return -1.0;
+        long[] nanos = ((MinecraftServerMixin) (Object) server).hungerbridge$getTickTimesNanos();
+        if (nanos == null || nanos.length == 0) return -1.0;
 
         long avg = 0L;
-        for (long t : times) avg += t;
-        avg /= times.length;
+        for (long t : nanos) avg += t;
+        avg /= nanos.length;
 
         return avg / 1_000_000.0;
     }
