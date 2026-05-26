@@ -1,6 +1,7 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.CommandExecutor;
+import com.hungerbridge.fabric.mixin.MinecraftServerMixin;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -100,9 +101,13 @@ public final class FabricCommandExecutor implements CommandExecutor {
     }
 
 
+    private long[] getTickTimes() {
+        return ((MinecraftServerMixin)(Object)server).hungerbridge$getTickTimes();
+    }
+
     @Override
     public double getTps() {
-        long[] nanos = server.getTickTimes();
+        long[] nanos = getTickTimes();
         if (nanos == null || nanos.length == 0) return -1.0;
 
         long avg = 0L;
@@ -133,7 +138,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTickTimeMs() {
-        long[] nanos = server.getTickTimes();
+        long[] nanos = getTickTimes();
         if (nanos == null || nanos.length == 0) return -1.0;
 
         long avg = 0L;
@@ -143,7 +148,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
         return avg / 1_000_000.0;
     }
 
-    // --- Players ---
 
     @Override
     public List<String> getOnlinePlayerNames() {
