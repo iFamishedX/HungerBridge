@@ -106,7 +106,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTps() {
-        long[] nanos = ((MinecraftServerMixin) (Object) server).hungerbridge$getTickTimesNanos();
+        long[] nanos = ((MinecraftServerMixin)(Object)server).hungerbridge$getTickTimes();
         if (nanos == null || nanos.length == 0) return -1.0;
 
         long avg = 0L;
@@ -118,6 +118,18 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
         double tps = 1000.0 / ms;
         return Math.min(20.0, tps);
+    }
+
+    @Override
+    public double getTickTimeMs() {
+        long[] nanos = ((MinecraftServerMixin)(Object)server).hungerbridge$getTickTimes();
+        if (nanos == null || nanos.length == 0) return -1.0;
+
+        long avg = 0L;
+        for (long t : nanos) avg += t;
+        avg /= nanos.length;
+
+        return avg / 1_000_000.0;
     }
 
     @Override

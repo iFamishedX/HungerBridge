@@ -28,6 +28,6 @@ public abstract class MinecraftServerMixin {
         HungerBridgeFabric.onServerStopping();
     }
 
-    @Accessor("tickTimesNanos")
-    public abstract long[] hungerbridge$getTickTimesNanos();
+    @Accessor("tickTimes")
+    public abstract long[] hungerbridge$getTickTimes();
 }
