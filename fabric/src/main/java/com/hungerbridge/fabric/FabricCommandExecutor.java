@@ -5,6 +5,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.tick.TickManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -13,7 +14,6 @@ import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +22,9 @@ import java.util.concurrent.CompletableFuture;
 public final class FabricCommandExecutor implements CommandExecutor {
 
     private final MinecraftServer server;
-    private volatile Field tickTimesField;
 
     public FabricCommandExecutor(MinecraftServer server) {
         this.server = server;
-        this.tickTimesField = findTickTimesField(server.getClass());
     }
 
     private CommandSourceStack console() {
@@ -102,55 +100,21 @@ public final class FabricCommandExecutor implements CommandExecutor {
         }
     }
 
-    // ---------- TPS / Tick Time via reflection ----------
+    // ---------------------------------------------------------
+    // TPS / Tick Time via TickManager (1.21.11 correct source)
+    // ---------------------------------------------------------
 
-    private static Field findTickTimesField(Class<?> cls) {
-        // Try likely names first
-        String[] candidates = { "tickTimes", "field_47136" };
-        for (String name : candidates) {
-            try {
-                Field f = cls.getDeclaredField(name);
-                if (f.getType().isArray() && f.getType().getComponentType() == long.class) {
-                    f.setAccessible(true);
-                    return f;
-                }
-            } catch (NoSuchFieldException ignored) {}
-        }
-
-        // Fallback: first long[] field
-        for (Field f : cls.getDeclaredFields()) {
-            if (f.getType().isArray() && f.getType().getComponentType() == long.class) {
-                f.setAccessible(true);
-                return f;
-            }
-        }
-
-        return null;
-    }
-
-    private long[] getTickTimes() {
-        try {
-            Field f = tickTimesField;
-            if (f == null) return null;
-            Object value = f.get(server);
-            if (!(value instanceof long[] arr)) return null;
-            return arr;
-        } catch (IllegalAccessException e) {
-            return null;
-        }
+    private TickManager tickManager() {
+        return server.getTickManager();
     }
 
     @Override
     public double getTps() {
-        long[] nanos = getTickTimes();
-        if (nanos == null || nanos.length == 0) return -1.0;
+        TickManager tm = tickManager();
+        if (tm == null) return -1.0;
 
-        long avg = 0L;
-        for (long t : nanos) avg += t;
-        avg /= nanos.length;
-
-        double ms = avg / 1_000_000.0;
-        if (ms <= 0.0) return -1.0;
+        float ms = tm.getMillisPerTick();
+        if (ms <= 0.0f) return -1.0;
 
         double tps = 1000.0 / ms;
         return Math.min(20.0, tps);
@@ -167,17 +131,14 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTickTimeMs() {
-        long[] nanos = getTickTimes();
-        if (nanos == null || nanos.length == 0) return -1.0;
-
-        long avg = 0L;
-        for (long t : nanos) avg += t;
-        avg /= nanos.length;
-
-        return avg / 1_000_000.0;
+        TickManager tm = tickManager();
+        if (tm == null) return -1.0;
+        return tm.getMillisPerTick();
     }
 
-    // ---------- Players ----------
+    // ---------------------------------------------------------
+    // Players
+    // ---------------------------------------------------------
 
     @Override
     public List<String> getOnlinePlayerNames() {
