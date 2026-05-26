@@ -28,7 +28,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
     }
 
     private CommandSourceStack console() {
-        // Default console source already has full permission
         return server.createCommandSourceStack();
     }
 
@@ -71,7 +70,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
             capture.start();
 
             if (!showConsole) {
-                // CLEAN MODE: hide console output for this command
                 for (Appender a : original.values()) {
                     root.removeAppender(a);
                 }
@@ -86,7 +84,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
                 capture.stop();
 
                 if (!showConsole) {
-                    // Restore original appenders only if we removed them
                     for (Appender a : original.values()) {
                         root.addAppender(a);
                     }
@@ -121,18 +118,6 @@ public final class FabricCommandExecutor implements CommandExecutor {
     }
 
     @Override
-    public double getTickTimeMs() {
-        long[] nanos = ((MinecraftServerMixin)(Object)server).hungerbridge$getTickTimes();
-        if (nanos == null || nanos.length == 0) return -1.0;
-
-        long avg = 0L;
-        for (long t : nanos) avg += t;
-        avg /= nanos.length;
-
-        return avg / 1_000_000.0;
-    }
-
-    @Override
     public double getTps1m() {
         return getTps();
     }
@@ -149,7 +134,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTickTimeMs() {
-        long[] nanos = ((MinecraftServerMixin) (Object) server).hungerbridge$getTickTimesNanos();
+        long[] nanos = ((MinecraftServerMixin)(Object)server).hungerbridge$getTickTimes();
         if (nanos == null || nanos.length == 0) return -1.0;
 
         long avg = 0L;
