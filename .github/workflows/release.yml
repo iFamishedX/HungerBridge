@@ -41,6 +41,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Force Loom to regenerate mappings
+        run: |
+          echo "Deleting stale Loom cache..."
+          rm -rf ~/.gradle/caches/fabric-loom
+          echo "Regenerating Minecraft sources..."
+          ./gradlew :fabric:genSources --no-daemon
+
       - name: Build
         run: ./gradlew clean build --no-daemon
 
