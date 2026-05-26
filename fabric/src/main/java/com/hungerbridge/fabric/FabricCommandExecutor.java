@@ -1,7 +1,6 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.CommandExecutor;
-import com.hungerbridge.fabric.mixin.MinecraftServerMixin;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,6 +13,7 @@ import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +22,11 @@ import java.util.concurrent.CompletableFuture;
 public final class FabricCommandExecutor implements CommandExecutor {
 
     private final MinecraftServer server;
+    private volatile Field tickTimesField;
 
     public FabricCommandExecutor(MinecraftServer server) {
         this.server = server;
+        this.tickTimesField = findTickTimesField(server.getClass());
     }
 
     private CommandSourceStack console() {
@@ -100,9 +102,42 @@ public final class FabricCommandExecutor implements CommandExecutor {
         }
     }
 
+    // ---------- TPS / Tick Time via reflection ----------
+
+    private static Field findTickTimesField(Class<?> cls) {
+        // Try likely names first
+        String[] candidates = { "tickTimes", "field_47136" };
+        for (String name : candidates) {
+            try {
+                Field f = cls.getDeclaredField(name);
+                if (f.getType().isArray() && f.getType().getComponentType() == long.class) {
+                    f.setAccessible(true);
+                    return f;
+                }
+            } catch (NoSuchFieldException ignored) {}
+        }
+
+        // Fallback: first long[] field
+        for (Field f : cls.getDeclaredFields()) {
+            if (f.getType().isArray() && f.getType().getComponentType() == long.class) {
+                f.setAccessible(true);
+                return f;
+            }
+        }
+
+        return null;
+    }
 
     private long[] getTickTimes() {
-        return ((MinecraftServerMixin)(Object)server).hungerbridge$getTickTimes();
+        try {
+            Field f = tickTimesField;
+            if (f == null) return null;
+            Object value = f.get(server);
+            if (!(value instanceof long[] arr)) return null;
+            return arr;
+        } catch (IllegalAccessException e) {
+            return null;
+        }
     }
 
     @Override
@@ -122,19 +157,13 @@ public final class FabricCommandExecutor implements CommandExecutor {
     }
 
     @Override
-    public double getTps1m() {
-        return getTps();
-    }
+    public double getTps1m() { return getTps(); }
 
     @Override
-    public double getTps5m() {
-        return getTps();
-    }
+    public double getTps5m() { return getTps(); }
 
     @Override
-    public double getTps15m() {
-        return getTps();
-    }
+    public double getTps15m() { return getTps(); }
 
     @Override
     public double getTickTimeMs() {
@@ -148,6 +177,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
         return avg / 1_000_000.0;
     }
 
+    // ---------- Players ----------
 
     @Override
     public List<String> getOnlinePlayerNames() {
