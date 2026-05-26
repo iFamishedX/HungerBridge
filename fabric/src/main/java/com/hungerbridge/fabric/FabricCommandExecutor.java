@@ -5,7 +5,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.tick.TickManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -101,16 +100,12 @@ public final class FabricCommandExecutor implements CommandExecutor {
     }
 
     // ---------------------------------------------------------
-    // TPS / Tick Time via TickManager (1.21.11 correct source)
+    // TPS via server.getTickManager() WITHOUT importing class
     // ---------------------------------------------------------
-
-    private TickManager tickManager() {
-        return server.getTickManager();
-    }
 
     @Override
     public double getTps() {
-        TickManager tm = tickManager();
+        var tm = server.getTickManager(); // type erased, works in intermediary
         if (tm == null) return -1.0;
 
         float ms = tm.getMillisPerTick();
@@ -131,7 +126,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTickTimeMs() {
-        TickManager tm = tickManager();
+        var tm = server.getTickManager();
         if (tm == null) return -1.0;
         return tm.getMillisPerTick();
     }
