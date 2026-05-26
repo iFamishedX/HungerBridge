@@ -4,6 +4,10 @@ plugins {
 
 project.version = gradle.ext.hbVersion
 
+loom {
+    useOfficialMojangMappings()
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:1.21.11"
     mappings loom.officialMojangMappings()
