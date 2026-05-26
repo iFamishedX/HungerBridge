@@ -1,7 +1,6 @@
 package com.hungerbridge.fabric;
 
 import com.hungerbridge.common.CommandExecutor;
-import com.hungerbridge.fabric.mixin.MinecraftServerMixin;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -103,7 +102,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTps() {
-        long[] nanos = ((MinecraftServerMixin)(Object)server).hungerbridge$getTickTimes();
+        long[] nanos = server.getTickTimes();
         if (nanos == null || nanos.length == 0) return -1.0;
 
         long avg = 0L;
@@ -134,7 +133,7 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     @Override
     public double getTickTimeMs() {
-        long[] nanos = ((MinecraftServerMixin)(Object)server).hungerbridge$getTickTimes();
+        long[] nanos = server.getTickTimes();
         if (nanos == null || nanos.length == 0) return -1.0;
 
         long avg = 0L;
