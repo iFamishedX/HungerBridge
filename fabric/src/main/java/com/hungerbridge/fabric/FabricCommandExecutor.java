@@ -99,41 +99,58 @@ public final class FabricCommandExecutor implements CommandExecutor {
         }
     }
 
-    // ---------------------------------------------------------
-    // TPS via server.getTickManager() WITHOUT importing class
-    // ---------------------------------------------------------
+    // ---------- TPS / Tick Time from HungerBridgeFabric buffer ----------
+
+    private double computeAvgMs() {
+        long[] nanos = HungerBridgeFabric.getTickHistory();
+        if (nanos == null || nanos.length == 0) return -1.0;
+
+        long total = 0L;
+        for (long n : nanos) {
+            total += n;
+        }
+
+        long avg = total / nanos.length;
+        return avg / 1_000_000.0;
+    }
 
     @Override
     public double getTps() {
-        var tm = server.getTickManager(); // type erased, works in intermediary
-        if (tm == null) return -1.0;
+        if (!HungerBridgeFabric.isTickHistoryWarmed()) {
+            return -1.0;
+        }
 
-        float ms = tm.getMillisPerTick();
-        if (ms <= 0.0f) return -1.0;
+        double ms = computeAvgMs();
+        if (ms <= 0.0) return -1.0;
 
         double tps = 1000.0 / ms;
         return Math.min(20.0, tps);
     }
 
     @Override
-    public double getTps1m() { return getTps(); }
+    public double getTps1m() {
+        return getTps();
+    }
 
     @Override
-    public double getTps5m() { return getTps(); }
+    public double getTps5m() {
+        return getTps();
+    }
 
     @Override
-    public double getTps15m() { return getTps(); }
+    public double getTps15m() {
+        return getTps();
+    }
 
     @Override
     public double getTickTimeMs() {
-        var tm = server.getTickManager();
-        if (tm == null) return -1.0;
-        return tm.getMillisPerTick();
+        if (!HungerBridgeFabric.isTickHistoryWarmed()) {
+            return -1.0;
+        }
+        return computeAvgMs();
     }
 
-    // ---------------------------------------------------------
-    // Players
-    // ---------------------------------------------------------
+    // ---------- Players ----------
 
     @Override
     public List<String> getOnlinePlayerNames() {

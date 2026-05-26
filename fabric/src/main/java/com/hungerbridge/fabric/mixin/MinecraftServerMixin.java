@@ -14,11 +14,24 @@ public abstract class MinecraftServerMixin {
     @Unique
     private boolean hungerbridge$started = false;
 
+    @Unique
+    private long hungerbridge$tickStartNanos;
+
     @Inject(method = "tickServer", at = @At("HEAD"))
-    private void hungerbridge$onFirstTick(CallbackInfo ci) {
+    private void hungerbridge$onTickStart(CallbackInfo ci) {
         if (!hungerbridge$started) {
             hungerbridge$started = true;
             HungerBridgeFabric.onServerStarted((MinecraftServer)(Object)this);
+        }
+        hungerbridge$tickStartNanos = System.nanoTime();
+    }
+
+    @Inject(method = "tickServer", at = @At("TAIL"))
+    private void hungerbridge$onTickEnd(CallbackInfo ci) {
+        long end = System.nanoTime();
+        long duration = end - hungerbridge$tickStartNanos;
+        if (duration > 0L) {
+            HungerBridgeFabric.recordTick(duration);
         }
     }
 
