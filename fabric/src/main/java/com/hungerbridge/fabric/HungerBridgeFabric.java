@@ -18,26 +18,61 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
     private static BridgeServer bridgeServer;
     private static MinecraftServer mcServer;
 
-    private static final int HB_TICK_SAMPLES = 100;
+    // tick timing buffer
+    // store up to 18k samples (15 minutes at 20 TPS = 18,000 ticks).
+    private static final int HB_TICK_SAMPLES = 18_000;
     private static final long[] HB_TICK_NANOS = new long[HB_TICK_SAMPLES];
     private static int HB_TICK_INDEX = 0;
     private static boolean HB_TICK_WARMED = false;
+    private static long HB_TICK_COUNT = 0L; // total recorded ticks (monotonic)
 
-    public static void recordTick(long nanos) {
+    public static synchronized void recordTick(long nanos) {
         HB_TICK_NANOS[HB_TICK_INDEX] = nanos;
         HB_TICK_INDEX = (HB_TICK_INDEX + 1) % HB_TICK_SAMPLES;
-
-        if (!HB_TICK_WARMED && HB_TICK_INDEX == 0) {
+        HB_TICK_COUNT++;
+        if (!HB_TICK_WARMED && HB_TICK_COUNT >= HB_TICK_SAMPLES) {
             HB_TICK_WARMED = true;
         }
     }
 
-    public static long[] getTickHistory() {
+    public static synchronized long[] getTickHistory() {
         return HB_TICK_NANOS;
     }
 
-    public static boolean isTickHistoryWarmed() {
+    public static synchronized boolean isTickHistoryWarmed() {
         return HB_TICK_WARMED;
+    }
+
+    /**
+     * Compute average tick time (ms) over the last `samples` ticks.
+     * If fewer samples exist, average over available samples.
+     */
+    public static synchronized double getAverageTickMs(int samples) {
+        if (samples <= 0) return -1.0;
+        long available = (int) Math.min(HB_TICK_COUNT, HB_TICK_SAMPLES);
+        if (available == 0) return -1.0;
+
+        int toRead = (int) Math.min(samples, available);
+        long sum = 0L;
+        int idx = (HB_TICK_INDEX - 1 + HB_TICK_SAMPLES) % HB_TICK_SAMPLES;
+
+        for (int i = 0; i < toRead; i++) {
+            long nanos = HB_TICK_NANOS[idx];
+            sum += nanos;
+            idx = (idx - 1 + HB_TICK_SAMPLES) % HB_TICK_SAMPLES;
+        }
+
+        double avgNanos = (double) sum / toRead;
+        return avgNanos / 1_000_000.0;
+    }
+
+    /**
+     * Compute TPS for a window defined by number of samples.
+     */
+    public static synchronized double getTpsForSamples(int samples) {
+        double avgMs = getAverageTickMs(samples);
+        if (avgMs <= 0.0) return -1.0;
+        return 1000.0 / avgMs;
     }
 
     @Override
@@ -56,8 +91,17 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         Path configDir = server.getFile("config").resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
+        // Set platform and minecraft version
         config.setPlatform("fabric");
         config.setMinecraftVersion(server.getServerVersion());
+
+        // Attempt to read version from JAR manifest; fallback to existing config value or "dev"
+        String implVersion = HungerBridgeFabric.class.getPackage().getImplementationVersion();
+        if (implVersion == null || implVersion.isBlank()) {
+            // keep whatever was loaded from version.yaml or default
+            implVersion = config.getVersion() != null ? config.getVersion() : "dev";
+        }
+        config.setBridgeVersion(implVersion);
 
         CommandExecutor executor = new FabricCommandExecutor(server);
 

@@ -101,53 +101,39 @@ public final class FabricCommandExecutor implements CommandExecutor {
 
     // ---------- TPS / Tick Time from HungerBridgeFabric buffer ----------
 
-    private double computeAvgMs() {
-        long[] nanos = HungerBridgeFabric.getTickHistory();
-        if (nanos == null || nanos.length == 0) return -1.0;
-
-        long total = 0L;
-        for (long n : nanos) {
-            total += n;
-        }
-
-        long avg = total / nanos.length;
-        return avg / 1_000_000.0;
-    }
+    private static final int CURRENT_SAMPLES = 100;   // last 100 ticks for "current"
+    private static final int SAMPLES_1M = 1200;       // 1 minute @ 20 TPS
+    private static final int SAMPLES_5M = 6000;       // 5 minutes
+    private static final int SAMPLES_15M = 18000;     // 15 minutes
 
     @Override
     public double getTps() {
-        if (!HungerBridgeFabric.isTickHistoryWarmed()) {
-            return -1.0;
-        }
-
-        double ms = computeAvgMs();
-        if (ms <= 0.0) return -1.0;
-
-        double tps = 1000.0 / ms;
-        return Math.min(20.0, tps);
+        double t = HungerBridgeFabric.getTpsForSamples(CURRENT_SAMPLES);
+        return t <= 0.0 ? -1.0 : t;
     }
 
     @Override
     public double getTps1m() {
-        return getTps();
+        double t = HungerBridgeFabric.getTpsForSamples(SAMPLES_1M);
+        return t <= 0.0 ? -1.0 : t;
     }
 
     @Override
     public double getTps5m() {
-        return getTps();
+        double t = HungerBridgeFabric.getTpsForSamples(SAMPLES_5M);
+        return t <= 0.0 ? -1.0 : t;
     }
 
     @Override
     public double getTps15m() {
-        return getTps();
+        double t = HungerBridgeFabric.getTpsForSamples(SAMPLES_15M);
+        return t <= 0.0 ? -1.0 : t;
     }
 
     @Override
     public double getTickTimeMs() {
-        if (!HungerBridgeFabric.isTickHistoryWarmed()) {
-            return -1.0;
-        }
-        return computeAvgMs();
+        double ms = HungerBridgeFabric.getAverageTickMs(CURRENT_SAMPLES);
+        return ms <= 0.0 ? -1.0 : ms;
     }
 
     // ---------- Players ----------

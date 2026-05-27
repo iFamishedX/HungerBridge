@@ -44,7 +44,7 @@ public final class Config {
     // JSON API metadata
     private String platform = "unknown";
     private String minecraftVersion = "unknown";
-    private final String bridgeVersion;
+    private String bridgeVersion; // made mutable
 
     public Config(
             int port,
@@ -119,6 +119,9 @@ public final class Config {
 
     public void setPlatform(String platform) { this.platform = platform; }
     public void setMinecraftVersion(String minecraftVersion) { this.minecraftVersion = minecraftVersion; }
+
+    // allow setting bridge version at runtime
+    public void setBridgeVersion(String bridgeVersion) { this.bridgeVersion = bridgeVersion; }
 
     @SuppressWarnings("unchecked")
     public static Config load(Path configDir, Logger logger) {

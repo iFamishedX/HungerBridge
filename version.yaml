@@ -1,5 +1,5 @@
 run: true
-version: "2.2.2-alpha"
+version: "2.3-alpha"
 mc_version: "1.21.11"
 description: |
-  - Fixed Fabric's TPS accessor
+  - Fixed and improved many things

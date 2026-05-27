@@ -280,9 +280,6 @@ public final class BridgeServer {
                 error(ex, 403, "forbidden", "v2 ping disabled");
                 return;
             }
-
-            long start = System.nanoTime();
-
             if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
                 error(ex, 405, "method_not_allowed", "Use GET");
                 return;
@@ -292,12 +289,12 @@ public final class BridgeServer {
                 return;
             }
 
-            long end = System.nanoTime();
-            long latencyMs = (end - start) / 1_000_000L;
+            // Echo server time (ms). Clients should measure round-trip to compute latency.
+            long serverTimeMs = System.currentTimeMillis();
 
             JsonObject resp = Json.obj(
                     "ok", true,
-                    "latency_ms", latencyMs
+                    "server_time", serverTimeMs
             );
             writeJson(ex, 200, resp);
         }
