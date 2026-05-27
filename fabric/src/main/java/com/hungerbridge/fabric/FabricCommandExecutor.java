@@ -106,28 +106,33 @@ public final class FabricCommandExecutor implements CommandExecutor {
     private static final int SAMPLES_5M = 6000;       // 5 minutes
     private static final int SAMPLES_15M = 18000;     // 15 minutes
 
+    private double clampGameSpeed(double rawTps) {
+        if (rawTps <= 0.0) return -1.0;
+        return Math.min(20.0, rawTps);
+    }
+
     @Override
     public double getTps() {
-        double t = HungerBridgeFabric.getTpsForSamples(CURRENT_SAMPLES);
-        return t <= 0.0 ? -1.0 : t;
+        double raw = HungerBridgeFabric.getTpsForSamples(CURRENT_SAMPLES);
+        return clampGameSpeed(raw);
     }
 
     @Override
     public double getTps1m() {
-        double t = HungerBridgeFabric.getTpsForSamples(SAMPLES_1M);
-        return t <= 0.0 ? -1.0 : t;
+        double raw = HungerBridgeFabric.getTpsForSamples(SAMPLES_1M);
+        return clampGameSpeed(raw);
     }
 
     @Override
     public double getTps5m() {
-        double t = HungerBridgeFabric.getTpsForSamples(SAMPLES_5M);
-        return t <= 0.0 ? -1.0 : t;
+        double raw = HungerBridgeFabric.getTpsForSamples(SAMPLES_5M);
+        return clampGameSpeed(raw);
     }
 
     @Override
     public double getTps15m() {
-        double t = HungerBridgeFabric.getTpsForSamples(SAMPLES_15M);
-        return t <= 0.0 ? -1.0 : t;
+        double raw = HungerBridgeFabric.getTpsForSamples(SAMPLES_15M);
+        return clampGameSpeed(raw);
     }
 
     @Override

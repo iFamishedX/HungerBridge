@@ -1,5 +1,6 @@
 run: true
-version: "2.3-alpha"
+version: "2.4-alpha"
 mc_version: "1.21.11"
 description: |
-  - Fixed and improved many things
+  - Changed calculations
+  - Fixed version detection

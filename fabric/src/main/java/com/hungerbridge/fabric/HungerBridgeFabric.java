@@ -5,6 +5,7 @@ import com.hungerbridge.common.CommandExecutor;
 import com.hungerbridge.common.Config;
 import com.hungerbridge.common.Logger;
 import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,6 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
     private static BridgeServer bridgeServer;
     private static MinecraftServer mcServer;
 
-    // tick timing buffer
     // store up to 18k samples (15 minutes at 20 TPS = 18,000 ticks).
     private static final int HB_TICK_SAMPLES = 18_000;
     private static final long[] HB_TICK_NANOS = new long[HB_TICK_SAMPLES];
@@ -49,7 +49,7 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
      */
     public static synchronized double getAverageTickMs(int samples) {
         if (samples <= 0) return -1.0;
-        long available = (int) Math.min(HB_TICK_COUNT, HB_TICK_SAMPLES);
+        long available = Math.min(HB_TICK_COUNT, HB_TICK_SAMPLES);
         if (available == 0) return -1.0;
 
         int toRead = (int) Math.min(samples, available);
@@ -95,13 +95,12 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         config.setPlatform("fabric");
         config.setMinecraftVersion(server.getServerVersion());
 
-        // Attempt to read version from JAR manifest; fallback to existing config value or "dev"
-        String implVersion = HungerBridgeFabric.class.getPackage().getImplementationVersion();
-        if (implVersion == null || implVersion.isBlank()) {
-            // keep whatever was loaded from version.yaml or default
-            implVersion = config.getVersion() != null ? config.getVersion() : "dev";
-        }
-        config.setBridgeVersion(implVersion);
+        // Get version from fabric.mod.json (which already uses ${version} from root version.yaml)
+        String modVersion = FabricLoader.getInstance()
+                .getModContainer("hungerbridge")
+                .map(c -> c.getMetadata().getVersion().getFriendlyString())
+                .orElse("unknown");
+        config.setBridgeVersion(modVersion);
 
         CommandExecutor executor = new FabricCommandExecutor(server);
 
