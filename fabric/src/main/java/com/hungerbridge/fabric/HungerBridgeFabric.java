@@ -19,24 +19,36 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
     private static BridgeServer bridgeServer;
     private static MinecraftServer mcServer;
 
-    // store up to 18k samples (15 minutes at 20 TPS = 18,000 ticks).
     private static final int HB_TICK_SAMPLES = 18_000;
     private static final long[] HB_TICK_NANOS = new long[HB_TICK_SAMPLES];
     private static int HB_TICK_INDEX = 0;
+    private static long HB_TICK_COUNT = 0;
     private static boolean HB_TICK_WARMED = false;
-    private static long HB_TICK_COUNT = 0L; // total recorded ticks (monotonic)
+
+    private static final double TARGET_MS = 50.0; // ideal tick time
+    private static double ema20 = TARGET_MS;      // ~20-tick window
+    private static double ema1200 = TARGET_MS;    // ~1 minute
+    private static double ema6000 = TARGET_MS;    // ~5 minutes
 
     public static synchronized void recordTick(long nanos) {
+        double ms = nanos / 1_000_000.0;
+
         HB_TICK_NANOS[HB_TICK_INDEX] = nanos;
         HB_TICK_INDEX = (HB_TICK_INDEX + 1) % HB_TICK_SAMPLES;
         HB_TICK_COUNT++;
         if (!HB_TICK_WARMED && HB_TICK_COUNT >= HB_TICK_SAMPLES) {
             HB_TICK_WARMED = true;
         }
-    }
 
-    public static synchronized long[] getTickHistory() {
-        return HB_TICK_NANOS;
+        // smoothing factors
+        double alpha20 = 1.0 / 20.0;
+        double alpha1200 = 1.0 / 1200.0;
+        double alpha6000 = 1.0 / 6000.0;
+
+        // update EMAs
+        ema20 = ema20 + alpha20 * (ms - ema20);
+        ema1200 = ema1200 + alpha1200 * (ms - ema1200);
+        ema6000 = ema6000 + alpha6000 * (ms - ema6000);
     }
 
     public static synchronized boolean isTickHistoryWarmed() {
@@ -44,8 +56,7 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
     }
 
     /**
-     * Compute average tick time (ms) over the last `samples` ticks.
-     * If fewer samples exist, average over available samples.
+     * Average tick time (ms) over the last `samples` ticks.
      */
     public static synchronized double getAverageTickMs(int samples) {
         if (samples <= 0) return -1.0;
@@ -57,8 +68,7 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         int idx = (HB_TICK_INDEX - 1 + HB_TICK_SAMPLES) % HB_TICK_SAMPLES;
 
         for (int i = 0; i < toRead; i++) {
-            long nanos = HB_TICK_NANOS[idx];
-            sum += nanos;
+            sum += HB_TICK_NANOS[idx];
             idx = (idx - 1 + HB_TICK_SAMPLES) % HB_TICK_SAMPLES;
         }
 
@@ -66,13 +76,24 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         return avgNanos / 1_000_000.0;
     }
 
-    /**
-     * Compute TPS for a window defined by number of samples.
-     */
-    public static synchronized double getTpsForSamples(int samples) {
-        double avgMs = getAverageTickMs(samples);
-        if (avgMs <= 0.0) return -1.0;
-        return 1000.0 / avgMs;
+    private static double clampGameSpeed(double rawTps) {
+        if (rawTps <= 0.0) return -1.0;
+        return Math.min(20.0, rawTps);
+    }
+
+    public static synchronized double getTps20() {
+        double raw = 1000.0 / ema20;
+        return clampGameSpeed(raw);
+    }
+
+    public static synchronized double getTps1m() {
+        double raw = 1000.0 / ema1200;
+        return clampGameSpeed(raw);
+    }
+
+    public static synchronized double getTps5m() {
+        double raw = 1000.0 / ema6000;
+        return clampGameSpeed(raw);
     }
 
     @Override
@@ -91,11 +112,9 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         Path configDir = server.getFile("config").resolve("HungerBridge");
         Config config = Config.load(configDir, logger);
 
-        // Set platform and minecraft version
         config.setPlatform("fabric");
         config.setMinecraftVersion(server.getServerVersion());
 
-        // Get version from fabric.mod.json (which already uses ${version} from root version.yaml)
         String modVersion = FabricLoader.getInstance()
                 .getModContainer("hungerbridge")
                 .map(c -> c.getMetadata().getVersion().getFriendlyString())
@@ -103,9 +122,6 @@ public final class HungerBridgeFabric implements DedicatedServerModInitializer {
         config.setBridgeVersion(modVersion);
 
         CommandExecutor executor = new FabricCommandExecutor(server);
-
-        // Info provider exists but is NOT passed into BridgeServer
-        FabricServerInfoProvider infoProvider = new FabricServerInfoProvider(server);
 
         bridgeServer = new BridgeServer(config, logger, executor);
         bridgeServer.start();
