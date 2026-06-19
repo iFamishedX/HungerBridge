@@ -1,0 +1,53 @@
+package com.hungerbridge.common.http.v2;
+
+import com.google.gson.JsonObject;
+import com.hungerbridge.common.CommandExecutor;
+import com.hungerbridge.common.Config;
+import com.hungerbridge.common.Json;
+import com.hungerbridge.common.Logger;
+import com.hungerbridge.common.http.HttpUtil;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+
+import java.io.IOException;
+
+/**
+ * /v2/tps
+ * GET, requires X-Auth-Key
+ * Returns tps metrics and tick_time_ms
+ */
+public final class TpsHandler implements HttpHandler {
+
+    private final Config config;
+    private final Logger logger;
+    private final CommandExecutor executor;
+
+    public TpsHandler(Config config, Logger logger, CommandExecutor executor) {
+        this.config = config;
+        this.logger = logger;
+        this.executor = executor;
+    }
+
+    @Override
+    public void handle(HttpExchange ex) throws IOException {
+        if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
+            HttpUtil.error(ex, 405, "method_not_allowed", "Use GET", config);
+            return;
+        }
+        if (!HttpUtil.auth(ex, config)) {
+            HttpUtil.error(ex, 401, "unauthorized", "Invalid X-Auth-Key", config);
+            return;
+        }
+
+        JsonObject resp = Json.obj(
+                "ok", true,
+                "tps", executor.getTps(),
+                "tps_1m", executor.getTps1m(),
+                "tps_5m", executor.getTps5m(),
+                "tps_15m", executor.getTps15m(),
+                "tick_time_ms", executor.getTickTimeMs()
+        );
+
+        HttpUtil.writeJson(ex, 200, resp);
+    }
+}

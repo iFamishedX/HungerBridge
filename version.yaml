@@ -1,5 +1,7 @@
 run: true
-version: "2.6-alpha"
+version: "3.0-dev1"
 mc_version: "1.21.11"
 description: |
-  - Changed default port to 1913
+  - Full refactor of the codebase, with a focus on improving readability and maintainability.
+  - Improved config
+  - Removed legacy and v1 endpoints

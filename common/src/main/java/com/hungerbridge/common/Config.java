@@ -14,29 +14,40 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Configuration holder for HungerBridge.
+ * Configuration holder for HungerBridge (v2-only schema).
+ *
+ * YAML schema produced / consumed:
+ *
+ * port: 1913
+ *
+ * auth:
+ *   key: <uuid>
+ *
+ * endpoints:
+ *   run: true
+ *   log: true
+ *   ping: true
+ *   info: true
+ *   status: true
+ *   tps: true
+ *   players: true
+ *
+ * players:
+ *   max-list: 50
  */
 public final class Config {
 
     private final int port;
     private final String authKey;
 
-    // Endpoint toggles
-    private final boolean legacyRun;
-    private final boolean legacyLog;
-
-    private final boolean v1Run;
-    private final boolean v1Log;
-    private final boolean v1Status;
-    private final boolean v1Version;
-
-    private final boolean v2Run;
-    private final boolean v2Log;
-    private final boolean v2Ping;
-    private final boolean v2Info;
-    private final boolean v2Status;
-    private final boolean v2Tps;
-    private final boolean v2Players;
+    // v2 endpoint toggles (now under "endpoints")
+    private final boolean runEnabled;
+    private final boolean logEnabled;
+    private final boolean pingEnabled;
+    private final boolean infoEnabled;
+    private final boolean statusEnabled;
+    private final boolean tpsEnabled;
+    private final boolean playersEnabled;
 
     // Players config
     private final int playersMaxList;
@@ -44,72 +55,46 @@ public final class Config {
     // JSON API metadata
     private String platform = "unknown";
     private String minecraftVersion = "unknown";
-    private String bridgeVersion; // made mutable
+    private String bridgeVersion; // mutable
 
     public Config(
             int port,
             String authKey,
-            boolean legacyRun,
-            boolean legacyLog,
-            boolean v1Run,
-            boolean v1Log,
-            boolean v1Status,
-            boolean v1Version,
-            boolean v2Run,
-            boolean v2Log,
-            boolean v2Ping,
-            boolean v2Info,
-            boolean v2Status,
-            boolean v2Tps,
-            boolean v2Players,
+            boolean runEnabled,
+            boolean logEnabled,
+            boolean pingEnabled,
+            boolean infoEnabled,
+            boolean statusEnabled,
+            boolean tpsEnabled,
+            boolean playersEnabled,
             int playersMaxList,
             String bridgeVersion
     ) {
         this.port = port;
         this.authKey = authKey;
 
-        this.legacyRun = legacyRun;
-        this.legacyLog = legacyLog;
-
-        this.v1Run = v1Run;
-        this.v1Log = v1Log;
-        this.v1Status = v1Status;
-        this.v1Version = v1Version;
-
-        this.v2Run = v2Run;
-        this.v2Log = v2Log;
-        this.v2Ping = v2Ping;
-        this.v2Info = v2Info;
-        this.v2Status = v2Status;
-        this.v2Tps = v2Tps;
-        this.v2Players = v2Players;
+        this.runEnabled = runEnabled;
+        this.logEnabled = logEnabled;
+        this.pingEnabled = pingEnabled;
+        this.infoEnabled = infoEnabled;
+        this.statusEnabled = statusEnabled;
+        this.tpsEnabled = tpsEnabled;
+        this.playersEnabled = playersEnabled;
 
         this.playersMaxList = playersMaxList;
-
         this.bridgeVersion = bridgeVersion;
     }
 
     public int getPort() { return port; }
     public String getAuthKey() { return authKey; }
 
-    // Legacy toggles
-    public boolean isLegacyRunEnabled() { return legacyRun; }
-    public boolean isLegacyLogEnabled() { return legacyLog; }
-
-    // v1 toggles
-    public boolean isV1RunEnabled() { return v1Run; }
-    public boolean isV1LogEnabled() { return v1Log; }
-    public boolean isV1StatusEnabled() { return v1Status; }
-    public boolean isV1VersionEnabled() { return v1Version; }
-
-    // v2 toggles
-    public boolean isV2RunEnabled() { return v2Run; }
-    public boolean isV2LogEnabled() { return v2Log; }
-    public boolean isV2PingEnabled() { return v2Ping; }
-    public boolean isV2InfoEnabled() { return v2Info; }
-    public boolean isV2StatusEnabled() { return v2Status; }
-    public boolean isV2TpsEnabled() { return v2Tps; }
-    public boolean isV2PlayersEnabled() { return v2Players; }
+    public boolean isRunEnabled() { return runEnabled; }
+    public boolean isLogEnabled() { return logEnabled; }
+    public boolean isPingEnabled() { return pingEnabled; }
+    public boolean isInfoEnabled() { return infoEnabled; }
+    public boolean isStatusEnabled() { return statusEnabled; }
+    public boolean isTpsEnabled() { return tpsEnabled; }
+    public boolean isPlayersEnabled() { return playersEnabled; }
 
     public int getPlayersMaxList() { return playersMaxList; }
 
@@ -132,7 +117,7 @@ public final class Config {
 
             Path configFile = configDir.resolve("config.yaml");
 
-            // Load version.yaml
+            // Load version.yaml (same behavior as before)
             String bridgeVersion = "unknown";
             try {
                 Path versionFile = configDir.getParent().getParent().resolve("version.yaml");
@@ -148,7 +133,7 @@ public final class Config {
                 }
             } catch (Exception ignored) {}
 
-            // Generate default config
+            // Generate default config if missing
             if (!Files.exists(configFile)) {
                 logger.log("WARN", "Config file not found, generating default config at " + configFile);
 
@@ -159,27 +144,15 @@ public final class Config {
                 auth.put("key", UUID.randomUUID().toString());
                 root.put("auth", auth);
 
-                Map<String, Object> v2 = new HashMap<>();
-                v2.put("run", true);
-                v2.put("log", true);
-                v2.put("ping", true);
-                v2.put("info", true);
-                v2.put("status", true);
-                v2.put("tps", true);
-                v2.put("players", true);
-                root.put("v2-endpoints", v2);
-
-                Map<String, Object> v1 = new HashMap<>();
-                v1.put("run", false);
-                v1.put("log", false);
-                v1.put("status", false);
-                v1.put("version", false);
-                root.put("v1-endpoints", v1);
-
-                Map<String, Object> legacy = new HashMap<>();
-                legacy.put("run", false);
-                legacy.put("log", false);
-                root.put("legacy-endpoints", legacy);
+                Map<String, Object> endpoints = new HashMap<>();
+                endpoints.put("run", true);
+                endpoints.put("log", true);
+                endpoints.put("ping", true);
+                endpoints.put("info", true);
+                endpoints.put("status", true);
+                endpoints.put("tps", true);
+                endpoints.put("players", true);
+                root.put("endpoints", endpoints);
 
                 Map<String, Object> players = new HashMap<>();
                 players.put("max-list", 50);
@@ -190,9 +163,16 @@ public final class Config {
                 options.setPrettyFlow(true);
                 Yaml yaml = new Yaml(options);
 
+                String dumped = yaml.dump(root);
+                String spaced = dumped
+                        .replace("\nport:", "\nport:")
+                        .replace("\nauth:", "\n\nauth:")
+                        .replace("\nendpoints:", "\n\nendpoints:")
+                        .replace("\nplayers:", "\n\nplayers:");
+
                 try (OutputStream out = Files.newOutputStream(configFile);
-                     OutputStreamWriter writer = new OutputStreamWriter(out)) {
-                    yaml.dump(root, writer);
+                    OutputStreamWriter writer = new OutputStreamWriter(out)) {
+                    writer.write(spaced);
                 }
             }
 
@@ -212,37 +192,30 @@ public final class Config {
             Map<String, Object> auth = (Map<String, Object>) root.getOrDefault("auth", new HashMap<>());
             String authKey = (String) auth.getOrDefault("key", "");
 
-            Map<String, Object> v2 = (Map<String, Object>) root.getOrDefault("v2-endpoints", new HashMap<>());
-            Map<String, Object> v1 = (Map<String, Object>) root.getOrDefault("v1-endpoints", new HashMap<>());
-            Map<String, Object> legacy = (Map<String, Object>) root.getOrDefault("legacy-endpoints", new HashMap<>());
+            Map<String, Object> endpoints = (Map<String, Object>) root.getOrDefault("endpoints", new HashMap<>());
             Map<String, Object> players = (Map<String, Object>) root.getOrDefault("players", new HashMap<>());
+
+            boolean run = (Boolean) endpoints.getOrDefault("run", true);
+            boolean log = (Boolean) endpoints.getOrDefault("log", true);
+            boolean ping = (Boolean) endpoints.getOrDefault("ping", true);
+            boolean info = (Boolean) endpoints.getOrDefault("info", true);
+            boolean status = (Boolean) endpoints.getOrDefault("status", true);
+            boolean tps = (Boolean) endpoints.getOrDefault("tps", true);
+            boolean playersEnabled = (Boolean) endpoints.getOrDefault("players", true);
+
+            int playersMaxList = ((Number) players.getOrDefault("max-list", 50)).intValue();
 
             return new Config(
                     port,
                     authKey,
-
-                    // legacy
-                    (Boolean) legacy.getOrDefault("run", false),
-                    (Boolean) legacy.getOrDefault("log", false),
-
-                    // v1
-                    (Boolean) v1.getOrDefault("run", false),
-                    (Boolean) v1.getOrDefault("log", false),
-                    (Boolean) v1.getOrDefault("status", false),
-                    (Boolean) v1.getOrDefault("version", false),
-
-                    // v2
-                    (Boolean) v2.getOrDefault("run", true),
-                    (Boolean) v2.getOrDefault("log", true),
-                    (Boolean) v2.getOrDefault("ping", true),
-                    (Boolean) v2.getOrDefault("info", true),
-                    (Boolean) v2.getOrDefault("status", true),
-                    (Boolean) v2.getOrDefault("tps", true),
-                    (Boolean) v2.getOrDefault("players", true),
-
-                    // players
-                    ((Number) players.getOrDefault("max-list", 50)).intValue(),
-
+                    run,
+                    log,
+                    ping,
+                    info,
+                    status,
+                    tps,
+                    playersEnabled,
+                    playersMaxList,
                     bridgeVersion
             );
 
