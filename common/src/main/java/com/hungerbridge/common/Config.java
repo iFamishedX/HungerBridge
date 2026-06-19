@@ -9,12 +9,12 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Configuration holder for HungerBridge (v2-only schema).
+ * Configuration holder for HungerBridge.
  *
  * YAML schema produced / consumed:
  *
@@ -40,7 +40,7 @@ public final class Config {
     private final int port;
     private final String authKey;
 
-    // v2 endpoint toggles (now under "endpoints")
+    // v2 endpoint toggles
     private final boolean runEnabled;
     private final boolean logEnabled;
     private final boolean pingEnabled;
@@ -55,7 +55,7 @@ public final class Config {
     // JSON API metadata
     private String platform = "unknown";
     private String minecraftVersion = "unknown";
-    private String bridgeVersion; // mutable
+    private String bridgeVersion;
 
     public Config(
             int port,
@@ -104,8 +104,6 @@ public final class Config {
 
     public void setPlatform(String platform) { this.platform = platform; }
     public void setMinecraftVersion(String minecraftVersion) { this.minecraftVersion = minecraftVersion; }
-
-    // allow setting bridge version at runtime
     public void setBridgeVersion(String bridgeVersion) { this.bridgeVersion = bridgeVersion; }
 
     @SuppressWarnings("unchecked")
@@ -117,7 +115,7 @@ public final class Config {
 
             Path configFile = configDir.resolve("config.yaml");
 
-            // Load version.yaml (same behavior as before)
+            // Load version.yaml
             String bridgeVersion = "unknown";
             try {
                 Path versionFile = configDir.getParent().getParent().resolve("version.yaml");
@@ -133,18 +131,18 @@ public final class Config {
                 }
             } catch (Exception ignored) {}
 
-            // Generate default config if missing
+            // Generate default config
             if (!Files.exists(configFile)) {
                 logger.log("WARN", "Config file not found, generating default config at " + configFile);
 
-                Map<String, Object> root = new HashMap<>();
+                Map<String, Object> root = new LinkedHashMap<>();
                 root.put("port", 1913);
 
-                Map<String, Object> auth = new HashMap<>();
+                Map<String, Object> auth = new LinkedHashMap<>();
                 auth.put("key", UUID.randomUUID().toString());
                 root.put("auth", auth);
 
-                Map<String, Object> endpoints = new HashMap<>();
+                Map<String, Object> endpoints = new LinkedHashMap<>();
                 endpoints.put("run", true);
                 endpoints.put("log", true);
                 endpoints.put("ping", true);
@@ -154,7 +152,7 @@ public final class Config {
                 endpoints.put("players", true);
                 root.put("endpoints", endpoints);
 
-                Map<String, Object> players = new HashMap<>();
+                Map<String, Object> players = new LinkedHashMap<>();
                 players.put("max-list", 50);
                 root.put("players", players);
 
@@ -164,14 +162,15 @@ public final class Config {
                 Yaml yaml = new Yaml(options);
 
                 String dumped = yaml.dump(root);
+
+                // Insert blank lines between sections
                 String spaced = dumped
-                        .replace("\nport:", "\nport:")
                         .replace("\nauth:", "\n\nauth:")
                         .replace("\nendpoints:", "\n\nendpoints:")
                         .replace("\nplayers:", "\n\nplayers:");
 
                 try (OutputStream out = Files.newOutputStream(configFile);
-                    OutputStreamWriter writer = new OutputStreamWriter(out)) {
+                     OutputStreamWriter writer = new OutputStreamWriter(out)) {
                     writer.write(spaced);
                 }
             }
@@ -189,11 +188,11 @@ public final class Config {
 
             int port = ((Number) root.getOrDefault("port", 1913)).intValue();
 
-            Map<String, Object> auth = (Map<String, Object>) root.getOrDefault("auth", new HashMap<>());
+            Map<String, Object> auth = (Map<String, Object>) root.getOrDefault("auth", new LinkedHashMap<>());
             String authKey = (String) auth.getOrDefault("key", "");
 
-            Map<String, Object> endpoints = (Map<String, Object>) root.getOrDefault("endpoints", new HashMap<>());
-            Map<String, Object> players = (Map<String, Object>) root.getOrDefault("players", new HashMap<>());
+            Map<String, Object> endpoints = (Map<String, Object>) root.getOrDefault("endpoints", new LinkedHashMap<>());
+            Map<String, Object> players = (Map<String, Object>) root.getOrDefault("players", new LinkedHashMap<>());
 
             boolean run = (Boolean) endpoints.getOrDefault("run", true);
             boolean log = (Boolean) endpoints.getOrDefault("log", true);

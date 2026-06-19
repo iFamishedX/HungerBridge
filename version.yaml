@@ -1,7 +1,5 @@
 run: true
-version: "3.0-dev1"
+version: "3.0-dev2"
 mc_version: "1.21.11"
 description: |
-  - Full refactor of the codebase, with a focus on improving readability and maintainability.
-  - Improved config
-  - Removed legacy and v1 endpoints
+  - Fixed the config file generation
