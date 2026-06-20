@@ -135,7 +135,7 @@ jobs:
       # modrinth release only if not a dev build
       - name: Publish to Modrinth
         if: steps.devcheck.outputs.is_dev == 'false'
-        uses: modrinth/minotaur@v2
+        uses: modrinth/minotaur@v1
         with:
           token: ${{ secrets.MODRINTH_TOKEN }}
           project_id: LYkoD1S0
