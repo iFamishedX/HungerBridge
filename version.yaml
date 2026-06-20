@@ -1,5 +1,7 @@
 run: true
-version: "3.0-dev2"
-mc_version: "1.21.11"
+version: "3.0-alpha1"
+mc_version: "1.21.11-26.1.2"
 description: |
-  - Fixed the config file generation
+  - Updated branch to alpha
+  - Updated mc version
+  - Updated release workflow to detect dev builds and release modrinth

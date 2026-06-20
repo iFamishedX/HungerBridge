@@ -17,13 +17,81 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install yq
+        run: sudo apt-get install -y yq
+
       - name: Read version.yaml
         id: version
         run: |
-          VERSION=$(grep '^version:' version.yaml | sed 's/version:[[:space:]]*"\(.*\)"/\1/')
-          MC_VERSION=$(grep '^mc_version:' version.yaml | sed 's/mc_version:[[:space:]]*"\(.*\)"/\1/')
+          VERSION=$(yq '.version' version.yaml)
+          MC_VERSION_RAW=$(yq '.mc_version' version.yaml)
+          DESC=$(yq '.desc' version.yaml)
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
+          echo "mc_version_raw=$MC_VERSION_RAW" >> $GITHUB_OUTPUT
+
+          echo "desc<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESC" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Detect dev build
+        id: devcheck
+        run: |
+          if echo "${{ steps.version.outputs.version }}" | grep -qi "dev"; then
+            echo "is_dev=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_dev=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Detect Modrinth version type
+        id: versiontype
+        run: |
+          V="${{ steps.version.outputs.version }}"
+
+          if echo "$V" | grep -qi "alpha"; then
+            echo "type=alpha" >> $GITHUB_OUTPUT
+          elif echo "$V" | grep -qi "beta"; then
+            echo "type=beta" >> $GITHUB_OUTPUT
+          else
+            echo "type=release" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Parse MC versions
+        id: mcversions
+        run: |
+          RAW="${{ steps.version.outputs.mc_version_raw }}"
+
+          # Case 1: Range "1.21.11-26.1.2"
+          if echo "$RAW" | grep -q "-"; then
+            START=$(echo "$RAW" | cut -d'-' -f1)
+            END=$(echo "$RAW" | cut -d'-' -f2)
+
+            # Generate list of versions between START and END (inclusive)
+            # Assumes Mojang's version ordering is lexicographically sortable
+            ALL=$(curl -s https://piston-meta.mojang.com/mc/game/version_manifest_v2.json | jq -r '.versions[].id')
+
+            LIST=$(echo "$ALL" | awk -v s="$START" -v e="$END" '
+              $0 == s { printing=1 }
+              printing { print }
+              $0 == e { exit }
+            ')
+
+            echo "versions<<EOF" >> $GITHUB_OUTPUT
+            echo "$LIST" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+
+          # Case 2: Comma list "1.21.11, 1.16.5"
+          elif echo "$RAW" | grep -q ","; then
+            echo "versions<<EOF" >> $GITHUB_OUTPUT
+            echo "$RAW" | tr ',' '\n' | sed 's/ //g'
+            echo "EOF" >> $GITHUB_OUTPUT
+
+          # Case 3: Single version "1.21.11"
+          else
+            echo "versions<<EOF" >> $GITHUB_OUTPUT
+            echo "$RAW"
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -47,7 +115,7 @@ jobs:
       - name: Prepare release artifacts
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          MC_VERSION="${{ steps.version.outputs.mc_version }}"
+          MC_VERSION="${{ steps.version.outputs.mc_version_raw }}"
           mkdir -p release
           cp paper/build/libs/*.jar "release/HungerBridge-paper-${VERSION}+${MC_VERSION}.jar"
           cp fabric/build/libs/*.jar "release/HungerBridge-fabric-${VERSION}+${MC_VERSION}.jar"
@@ -57,11 +125,28 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: HungerBridge ${{ steps.version.outputs.version }}
-          body: |
-            HungerBridge release.
-            Multiloader HTTP bridge for Paper and Fabric.
+          body: ${{ steps.version.outputs.desc }}
           files: |
-            release/HungerBridge-paper-${{ steps.version.outputs.version }}+${{ steps.version.outputs.mc_version }}.jar
-            release/HungerBridge-fabric-${{ steps.version.outputs.version }}+${{ steps.version.outputs.mc_version }}.jar
+            release/HungerBridge-paper-${{ steps.version.outputs.version }}+${{ steps.version.outputs.mc_version_raw }}.jar
+            release/HungerBridge-fabric-${{ steps.version.outputs.version }}+${{ steps.version.outputs.mc_version_raw }}.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # modrinth release only if not a dev build
+      - name: Publish to Modrinth
+        if: steps.devcheck.outputs.is_dev == 'false'
+        uses: modrinth/modrinth-upload@v1
+        with:
+          token: ${{ secrets.MODRINTH_TOKEN }}
+          project_id: LYkoD1S0
+          version_number: ${{ steps.version.outputs.version }}
+          version_name: HungerBridge ${{ steps.version.outputs.version }}
+          version_type: ${{ steps.versiontype.outputs.type }}
+          changelog: ${{ steps.version.outputs.desc }}
+          game_versions: ${{ steps.mcversions.outputs.versions }}
+          loaders: |
+            paper
+            fabric
+          files: |
+            release/HungerBridge-paper-${{ steps.version.outputs.version }}+${{ steps.version.outputs.mc_version_raw }}.jar
+            release/HungerBridge-fabric-${{ steps.version.outputs.version }}+${{ steps.version.outputs.mc_version_raw }}.jar
