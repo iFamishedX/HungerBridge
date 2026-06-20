@@ -1,7 +1,5 @@
 run: true
 version: "3.0-alpha1"
-mc_version: "1.21.11-26.1.2"
+mc_version: "1.21.11"
 description: |
-  - Updated branch to alpha
-  - Updated mc version
-  - Updated release workflow to detect dev builds and release modrinth
+  - Removed Modrinth updloading.
