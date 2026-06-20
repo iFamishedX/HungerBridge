@@ -17,8 +17,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install yq
-        run: sudo apt-get install -y yq
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yq jq curl
 
       - name: Read version.yaml
         id: version
@@ -31,7 +33,7 @@ jobs:
           echo "mc_version_raw=$MC_VERSION_RAW" >> $GITHUB_OUTPUT
 
           echo "desc<<EOF" >> $GITHUB_OUTPUT
-          echo "$DESC" >> $GITHUB_OUTPUT
+          echo "$DESC"
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Detect dev build
@@ -66,8 +68,6 @@ jobs:
             START=$(echo "$RAW" | cut -d'-' -f1)
             END=$(echo "$RAW" | cut -d'-' -f2)
 
-            # Generate list of versions between START and END (inclusive)
-            # Assumes Mojang's version ordering is lexicographically sortable
             ALL=$(curl -s https://piston-meta.mojang.com/mc/game/version_manifest_v2.json | jq -r '.versions[].id')
 
             LIST=$(echo "$ALL" | awk -v s="$START" -v e="$END" '
@@ -77,7 +77,7 @@ jobs:
             ')
 
             echo "versions<<EOF" >> $GITHUB_OUTPUT
-            echo "$LIST" >> $GITHUB_OUTPUT
+            echo "$LIST"
             echo "EOF" >> $GITHUB_OUTPUT
 
           # Case 2: Comma list "1.21.11, 1.16.5"
@@ -135,7 +135,7 @@ jobs:
       # modrinth release only if not a dev build
       - name: Publish to Modrinth
         if: steps.devcheck.outputs.is_dev == 'false'
-        uses: modrinth/modrinth-upload@v1
+        uses: modrinth/minotaur@v2
         with:
           token: ${{ secrets.MODRINTH_TOKEN }}
           project_id: LYkoD1S0
